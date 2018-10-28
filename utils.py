@@ -45,7 +45,7 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 5):
     db['test_data_noisy'] = test_data_noisy
     db['num_copy'] = num_copy
     db['sigma'] = sigma
-    fileName = f'{outDir}/noisyCifar_sigma{sigma}_copy{num_copy}'
+    fileName = '%s/noisyCifar_sigma%f_copy%d'%(outDir,sigma,num_copy)
     with open(fileName,'wb') as dbFile:
         pickle.dump(db, dbFile)
 
@@ -61,7 +61,7 @@ class noisy_cifar10(data.Dataset):
         self.train = train
         self.transform = transform
         self.target_transform = target_transform
-        fileName = f'{dataDir}/noisyCifar_sigma{sigma}_copy{num_copy}'
+        fileName = '%s/noisyCifar_sigma%f_copy%d'%(dataDir,sigma,num_copy)
         if os.path.isfile(fileName):
             with open(fileName,'rb') as dbFile:
                 db = pickle.load(dbFile)
