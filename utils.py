@@ -37,19 +37,29 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
     for copy in range(num_copy):
         for i in range(N):
             test_data_noisy[i*num_copy + copy] = test_data[i] + np.random.randn(32,32,3)*sigma
-    
-    db = {}
-    db['train_data'] = train_data
-    db['train_labels'] = trainset.train_labels
-    db['test_data'] = test_data
-    db['test_labels'] = testset.test_labels
-    db['train_data_noisy'] = train_data_noisy
-    db['test_data_noisy'] = test_data_noisy
-    db['num_copy'] = num_copy
-    db['sigma'] = sigma
+            
+#    db = {}
+#    db['train_data'] = train_data
+#    db['train_labels'] = trainset.train_labels
+#    db['test_data'] = test_data
+#    db['test_labels'] = testset.test_labels
+#    db['train_data_noisy'] = train_data_noisy
+#    db['test_data_noisy'] = test_data_noisy
+#    db['num_copy'] = num_copy
+#    db['sigma'] = sigma
+#    fileName = '%s/noisyCifar_sigma%f_copy%d'%(outDir,sigma,num_copy)
+#    with open(fileName,'wb') as dbFile:
+#        pickle.dump(db, dbFile)
     fileName = '%s/noisyCifar_sigma%f_copy%d'%(outDir,sigma,num_copy)
-    with open(fileName,'wb') as dbFile:
-        pickle.dump(db, dbFile)
+    np.savez(fileName, 
+             train_data=train_data, 
+             train_labels=trainset.train_labels, 
+             train_data_noisy=train_data_noisy,
+             test_data=test_data, 
+             test_labels=testset.test_labels, 
+             test_data_noisy=test_data_noisy,
+             num_copy=num_copy,
+             sigma=sigma)
 
 if __name__=='__main__':
     add_noise_and_save(dataDir,outDir,sigma=0.05)
@@ -65,17 +75,17 @@ class noisy_cifar10(data.Dataset):
         self.target_transform = target_transform
         fileName = '%s/noisyCifar_sigma%f_copy%d'%(dataDir,sigma,num_copy)
         if os.path.isfile(fileName):
-            with open(fileName,'rb') as dbFile:
-                db = pickle.load(dbFile)
-                assert sigma == db['sigma'] and num_copy == db['num_copy']
-                if self.train:
-                    self.train_data = db['train_data']
-                    self.train_labels = db['train_labels']
-                    self.train_data_noisy = db['train_data_noisy']
-                else:
-                    self.test_data = db['test_data']
-                    self.test_labels = db['test_labels']
-                    self.test_data_noisy = db['test_data_noisy']
+#            with open(fileName,'rb') as dbFile:
+            db = np.load(fileName)
+            assert sigma == db['sigma'] and num_copy == db['num_copy']
+            if self.train:
+                self.train_data = db['train_data']
+                self.train_labels = db['train_labels']
+                self.train_data_noisy = db['train_data_noisy']
+            else:
+                self.test_data = db['test_data']
+                self.test_labels = db['test_labels']
+                self.test_data_noisy = db['test_data_noisy']
         else: 
             raise ValueError('no file found! %s'%(fileName))
     def __len__(self):
