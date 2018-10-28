@@ -16,8 +16,10 @@ import numpy as np
 import pickle
 from PIL import Image
 
-dataDir = '../cifar'
-outDir = '../cifar'
+#dataDir = '../cifar'
+#outDir = '../cifar'
+dataDir = '/home/yuqi/spinner/dataset/cifar10'
+outDir = dataDir
 def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
     trainset = torchvision.datasets.CIFAR10(root=dataDir, train=True, download=True)
     testset = torchvision.datasets.CIFAR10(root=dataDir, train=False, download=True)
