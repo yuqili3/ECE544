@@ -52,6 +52,7 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 5):
 if __name__=='__main__':
     add_noise_and_save(dataDir,outDir,sigma=0.05)
 
+
 class noisy_cifar10(data.Dataset):
     def __init__(self, sigma, num_copy=5,dataDir='../cifar', train=True, transform=None, target_transform=None):
         self.sigma = sigma
