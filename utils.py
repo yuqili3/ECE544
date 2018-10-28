@@ -75,7 +75,7 @@ class noisy_cifar10(data.Dataset):
                     self.test_labels = db['test_labels']
                     self.test_data_noisy = db['test_data_noisy']
         else: 
-            raise ValueError(f'no file found! {fileName}')
+            raise ValueError('no file found! %s'%(fileName))
     def __len__(self):
         if self.train:
             return len(self.train_data_noisy)
