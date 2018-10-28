@@ -37,20 +37,8 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
     for copy in range(num_copy):
         for i in range(N):
             test_data_noisy[i*num_copy + copy] = test_data[i] + np.random.randn(32,32,3)*sigma
-            
-#    db = {}
-#    db['train_data'] = train_data
-#    db['train_labels'] = trainset.train_labels
-#    db['test_data'] = test_data
-#    db['test_labels'] = testset.test_labels
-#    db['train_data_noisy'] = train_data_noisy
-#    db['test_data_noisy'] = test_data_noisy
-#    db['num_copy'] = num_copy
-#    db['sigma'] = sigma
-#    fileName = '%s/noisyCifar_sigma%f_copy%d'%(outDir,sigma,num_copy)
-#    with open(fileName,'wb') as dbFile:
-#        pickle.dump(db, dbFile)
-    fileName = '%s/noisyCifar_sigma%f_copy%d'%(outDir,sigma,num_copy)
+
+    fileName = '%s/noisyCifar_sigma%.2f_copy%d'%(outDir,sigma,num_copy)
     np.savez(fileName, 
              train_data=train_data, 
              train_labels=trainset.train_labels, 
@@ -61,10 +49,10 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
              num_copy=num_copy,
              sigma=sigma)
 
-if __name__=='__main__':
-    add_noise_and_save(dataDir,outDir,sigma=0.05)
-
-
+#if __name__=='__main__':
+#    add_noise_and_save(dataDir,outDir,sigma=0.05)
+    
+    
 class noisy_cifar10(data.Dataset):
     def __init__(self, sigma, num_copy=3,dataDir='../cifar', train=True, transform=None, target_transform=None):
         self.sigma = sigma
@@ -73,9 +61,8 @@ class noisy_cifar10(data.Dataset):
         self.train = train
         self.transform = transform
         self.target_transform = target_transform
-        fileName = '%s/noisyCifar_sigma%f_copy%d'%(dataDir,sigma,num_copy)
+        fileName = '%s/noisyCifar_sigma%.2f_copy%d'%(dataDir,sigma,num_copy)
         if os.path.isfile(fileName):
-#            with open(fileName,'rb') as dbFile:
             db = np.load(fileName)
             assert sigma == db['sigma'] and num_copy == db['num_copy']
             if self.train:
@@ -115,7 +102,6 @@ class noisy_cifar10(data.Dataset):
             img = self.transform(img)
         if self.target_transform is not None:
             target = self.target_transform(target)
-
         return noisy, img, target
     
     
