@@ -91,7 +91,7 @@ def train(epoch):
         train_loss += loss.item()
         MSE_loss += nn.MSELoss()(outputs, img).item()
 
-        print('Loss: %.4f | MSE Loss: %.4f'% (train_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
+    print('Loss: %.4f | MSE Loss: %.4f'% (train_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
         
 def test(epoch):
     global best_MSE
@@ -102,13 +102,13 @@ def test(epoch):
         for batch_idx, (noisy, img, targets) in enumerate(testloader):
             noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
             outputs = net(noisy)
-            loss = criterion(outputs, targets)
+            loss = criterion(outputs, img)
             
             test_loss += loss.item()
             MSE_loss += nn.MSELoss()(outputs, img).item()
             
-        print('\nEpoch: %d / %d' %(epoch, args.epoch))
-        print('Loss: %.4f | MSE Loss: %.4f'% (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
+    print('\nEpoch: %d / %d' %(epoch, args.epoch))
+    print('Loss: %.4f | MSE Loss: %.4f'% (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
 
     # Save checkpoint.
     MSE = MSE_loss
