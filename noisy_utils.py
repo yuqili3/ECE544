@@ -93,7 +93,10 @@ class noisy_cifar10(data.Dataset):
         else:
             noisy = self.test_data_noisy[index]
             img, target = self.test_data[idx], self.test_labels[idx]
-            
+        
+        noisy = (noisy*255).astype(np.uint8)
+        img = (img*255).astype(np.uint8)
+        # Image.fromarray only defined for uint8
         noisy = Image.fromarray(noisy)
         img = Image.fromarray(img)
         
