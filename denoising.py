@@ -13,11 +13,6 @@ import argparse
 import noisy_utils
 from models import *
 
-if not os.path.exists('./mlp_img'):
-    os.mkdir('./mlp_img')
-if not os.path.exists('./filters'):
-    os.mkdir('./filters')
-
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 denoising AE Training')
 parser.add_argument('--lr', default=1e-2, type=float, help='learning rate')
 parser.add_argument('--epoch', default=20, type=int, help='number of training epochs')
@@ -63,7 +58,7 @@ if device == 'cuda':
 if args.resume:
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
-    assert os.path.isdir(os.path.normpath(dataDir+'/checkpoint')), 'Error: no checkpoint directory found!'
+    assert os.path.isdir(os.path.normpath(dataDir+'/checkpoints')), 'Error: no checkpoint directory found!'
     checkpoint = torch.load('../checkpoints/ckpt_%s.t7'%(netName))
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
@@ -75,7 +70,7 @@ optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=
 
 
 def train(epoch):
-    print('\nEpoch: %d / %d' %(epoch, args.epoch))
+    print('\nTRAIN: Epoch: %d / %d' %(epoch, args.epoch))
     net.train()
     train_loss = 0
     MSE_loss = 0
@@ -91,7 +86,7 @@ def train(epoch):
         train_loss += loss.item()
         MSE_loss += nn.MSELoss()(outputs, img).item()
 
-    print('Loss: %.4f | MSE Loss: %.4f'% (train_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
+    print('TRAIN: Loss: %.6f | MSE Loss: %.6f'% (train_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
         
 def test(epoch):
     global best_MSE
@@ -108,8 +103,8 @@ def test(epoch):
             test_loss += loss.item()
             MSE_loss += nn.MSELoss()(outputs, img).item()
             
-    print('\nEpoch: %d / %d' %(epoch, args.epoch))
-    print('Loss: %.4f | MSE Loss: %.4f'% (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
+    print('\nTest: Epoch: %d / %d' %(epoch, args.epoch))
+    print('Test: Loss: %.6f | MSE Loss: %.6f'% (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
 
     # Save checkpoint.
     MSE = MSE_loss
@@ -120,8 +115,8 @@ def test(epoch):
             'mse': MSE,
             'epoch': epoch,
         }
-        if not os.path.isdir(os.path.normpath('../checkpoint')):
-            os.mkdir(os.path.normpath('../checkpoint'))
+        if not os.path.isdir(os.path.normpath('../checkpoints')):
+            os.mkdir(os.path.normpath('../checkpoints'))
         torch.save(state, '../checkpoints/ckpt_%s.t7'%(netName))
         best_MSE = MSE
         
