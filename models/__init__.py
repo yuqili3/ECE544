@@ -1,2 +1,2 @@
-from .DAE import *
+from .dae import *
 

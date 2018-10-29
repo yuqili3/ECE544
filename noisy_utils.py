@@ -11,9 +11,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 import os
-import argparse
 import numpy as np
-import pickle
 from PIL import Image
 
 dataDir = '../cifar'

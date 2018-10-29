@@ -4,111 +4,130 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
+import torch.backends.cudnn as cudnn
+
 from torchvision import transforms
-from torchvision.datasets import MNIST, CIFAR10
 from torchvision.utils import save_image
+
+import argparse
+import noisy_utils
+from models import *
+from utils import progress_bar
+
 
 if not os.path.exists('./mlp_img'):
     os.mkdir('./mlp_img')
 if not os.path.exists('./filters'):
     os.mkdir('./filters')
 
+parser = argparse.ArgumentParser(description='PyTorch CIFAR10 denoising AE Training')
+parser.add_argument('--lr', default=1e-2, type=float, help='learning rate')
+parser.add_argument('--epoch', default=20, type=int, help='number of training epochs')
+parser.add_argument('--copy', default=3, type=int, help='number of noisy image copies')
+parser.add_argument('--sigma', default=0.2, type=float, help='noise level sigma')
+parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
+args = parser.parse_args()
 
-def to_img(x):
-    x = x.view(x.size(0), 1, 28, 28)
-    return x
+dataDir = '../cifar'
+lr = args.lr
+sigma = args.sigma
+num_copy = args.copy
 
-num_epochs = 20
-batch_size = 128
-learning_rate = 1e-3
-
-
-def add_noise(img):
-    noise = torch.randn(img.size()) * 0.2
-    noisy_img = img + noise
-    return noisy_img
-
-
-def plot_sample_img(img, name):
-    img = img.view(1, 28, 28)
-    save_image(img, './sample_{}.png'.format(name))
-
-
-def min_max_normalization(tensor, min_value, max_value):
-    min_tensor = tensor.min()
-    tensor = (tensor - min_tensor)
-    max_tensor = tensor.max()
-    tensor = tensor / max_tensor
-    tensor = tensor * (max_value - min_value) + min_value
-    return tensor
-
-
-def tensor_round(tensor):
-    return torch.round(tensor)
-
+best_acc = 0  # best test accuracy
+start_epoch = 0  # start from epoch 0 or last checkpoint epoch
+# Data
+print('==> Preparing data..')
 
 img_transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Lambda(lambda tensor:min_max_normalization(tensor, 0, 1)),
-    transforms.Lambda(lambda tensor:tensor_round(tensor))
+    transforms.ToTensor()
 ])
 
-dataset = MNIST('~/spinner/ECE544/data', transform=img_transform, download=True)
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+trainset = noisy_utils.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transforms=img_transform,train=True)
+trainloader = DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
+
+testset = noisy_utils.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transforms=img_transform,train=False)
+testloader = DataLoader(testset, batch_size=100, shuffle=True, num_workers=2)
+
+def pairwise_potential(img):
+    # TODO: implement sqaure pairwise potential
+    out=0
+    return out
+
+print('==> Building model..')
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+netName = 'dae_MLP2'
+net = dae.autoencoder('MLP2')
+net = net.cuda()
+if device == 'cuda':
+    net = torch.nn.DataParallel(net)
+    cudnn.benchmark = True
+    
+if args.resume:
+    # Load checkpoint.
+    print('==> Resuming from checkpoint..')
+    assert os.path.isdir(os.path.normpath(dataDir+'/checkpoint')), 'Error: no checkpoint directory found!'
+    checkpoint = torch.load('../checkpoints/ckpt_%s.t7'%(netName))
+    net.load_state_dict(checkpoint['net'])
+    best_acc = checkpoint['acc']
+    start_epoch = checkpoint['epoch']
 
 
-class autoencoder(nn.Module):
-    def __init__(self):
-        super(autoencoder, self).__init__()
-        self.encoder = nn.Sequential(
-            nn.Linear(28 * 28, 256),
-            nn.ReLU(True),
-            nn.Linear(256, 64),
-            nn.ReLU(True))
-        self.decoder = nn.Sequential(
-            nn.Linear(64, 256),
-            nn.ReLU(True),
-            nn.Linear(256, 28 * 28),
-            nn.Sigmoid())
-
-    def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
-        return x
-
-
-model = autoencoder().cuda()
 criterion = nn.BCELoss()
-optimizer = torch.optim.Adam(
-    model.parameters(), lr=learning_rate, weight_decay=1e-5)
+optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=1e-5)
 
-for epoch in range(num_epochs):
-    for data in dataloader:
-        img, _ = data
-        img = img.view(img.size(0), -1)
-        noisy_img = add_noise(img)
-        noisy_img = Variable(noisy_img).cuda()
-        img = Variable(img).cuda()
-        # ===================forward=====================
-        output = model(noisy_img)
-        loss = criterion(output, img)
-        MSE_loss = nn.MSELoss()(output, img)
-        # ===================backward====================
+
+def train(epoch):
+    print('\nEpoch: %d' % epoch)
+    net.train()
+    train_loss = 0
+    MSE_loss = 0
+    for batch_idx, (noisy, img, targets) in enumerate(trainloader):
+        noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
         optimizer.zero_grad()
+        outputs = net(noisy)
+        loss = criterion(outputs, img)
+        # TODO: really uses BCE Loss?
         loss.backward()
         optimizer.step()
-    # ===================log========================
-    print('epoch [{}/{}], loss:{:.4f}, MSE_loss:{:.4f}'
-          .format(epoch + 1, num_epochs, loss.data[0], MSE_loss.data[0]))
-    if epoch % 10 == 0:
-        x = to_img(img.cpu().data)
-        x_hat = to_img(output.cpu().data)
-        x_noisy = to_img(noisy_img.cpu().data)
-        weights = to_img(model.encoder[0].weight.cpu().data)
-        save_image(x, './mlp_img/x_{}.png'.format(epoch))
-        save_image(x_hat, './mlp_img/x_hat_{}.png'.format(epoch))
-        save_image(x_noisy, './mlp_img/x_noisy_{}.png'.format(epoch))
-        save_image(weights, './filters/epoch_{}.png'.format(epoch))
 
-torch.save(model.state_dict(), './sim_autoencoder.pth')
+        train_loss += loss.item()
+        MSE_loss += nn.MSELoss()(outputs, img).item()
+
+        progress_bar(batch_idx, len(trainloader), 'Loss: %.4f | MSE Loss: %.4f'
+            % (train_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
+        
+def test(epoch):
+    global best_MSE
+    net.eval()
+    test_loss = 0
+    MSE_loss = 0
+    with torch.no_grad():
+        for batch_idx, (noisy, img, targets) in enumerate(testloader):
+            noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
+            outputs = net(noisy)
+            loss = criterion(outputs, targets)
+            
+            test_loss += loss.item()
+            MSE_loss += nn.MSELoss()(outputs, img).item()
+
+        progress_bar(batch_idx, len(testloader), 'Loss: %.4f | MSE Loss: %.4f'
+            % (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
+
+    # Save checkpoint.
+    MSE = MSE_loss
+    if MSE < best_MSE:
+        print('Saving..')
+        state = {
+            'net': net.state_dict(),
+            'mse': MSE,
+            'epoch': epoch,
+        }
+        if not os.path.isdir(os.path.normpath('../checkpoint')):
+            os.mkdir(os.path.normpath('../checkpoint'))
+        torch.save(state, '../checkpoints/ckpt_%s.t7'%(netName))
+        best_MSE = MSE
+        
+for epoch in range(start_epoch, start_epoch+args.epoch):
+    train(epoch)
+    test(epoch)
 
