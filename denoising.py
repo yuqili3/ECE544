@@ -12,8 +12,6 @@ from torchvision.utils import save_image
 import argparse
 import noisy_utils
 from models import *
-from utils import progress_bar
-
 
 if not os.path.exists('./mlp_img'):
     os.mkdir('./mlp_img')
@@ -77,7 +75,7 @@ optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=
 
 
 def train(epoch):
-    print('\nEpoch: %d' % epoch)
+    print('\nEpoch: %d / %d' %(epoch, args.epoch))
     net.train()
     train_loss = 0
     MSE_loss = 0
@@ -93,8 +91,7 @@ def train(epoch):
         train_loss += loss.item()
         MSE_loss += nn.MSELoss()(outputs, img).item()
 
-        progress_bar(batch_idx, len(trainloader), 'Loss: %.4f | MSE Loss: %.4f'
-            % (train_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
+        print('Loss: %.4f | MSE Loss: %.4f'% (train_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
         
 def test(epoch):
     global best_MSE
@@ -109,9 +106,9 @@ def test(epoch):
             
             test_loss += loss.item()
             MSE_loss += nn.MSELoss()(outputs, img).item()
-
-        progress_bar(batch_idx, len(testloader), 'Loss: %.4f | MSE Loss: %.4f'
-            % (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
+            
+        print('\nEpoch: %d / %d' %(epoch, args.epoch))
+        print('Loss: %.4f | MSE Loss: %.4f'% (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
 
     # Save checkpoint.
     MSE = MSE_loss
