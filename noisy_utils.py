@@ -59,7 +59,7 @@ class noisy_cifar10(data.Dataset):
         self.train = train
         self.transform = transform
         self.target_transform = target_transform
-        fileName = '%s/noisyCifar_sigma%.2f_copy%d'%(dataDir,sigma,num_copy)
+        fileName = '%s/noisyCifar_sigma%.2f_copy%d.npz'%(dataDir,sigma,num_copy)
         if os.path.isfile(fileName):
             db = np.load(fileName)
             assert sigma == db['sigma'] and num_copy == db['num_copy']
