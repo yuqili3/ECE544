@@ -88,10 +88,12 @@ class noisy_cifar10(data.Dataset):
         """
         idx = int(index//self.num_copy)
         if self.train:
-            noisy, img, target = self.train_data_noisy[index], self.train_data[idx], self.train_labels[idx]
+            noisy = self.train_data_noisy[index]
+            img, target = self.train_data[idx], self.train_labels[idx]  
         else:
-            noisy, img, target = self.test_data_noisy[index], self.test_data[idx], self.test_labels[idx]
-
+            noisy = self.test_data_noisy[index]
+            img, target = self.test_data[idx], self.test_labels[idx]
+            
         noisy = Image.fromarray(noisy)
         img = Image.fromarray(img)
         
