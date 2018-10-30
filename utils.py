@@ -60,7 +60,7 @@ def get_output(in_img,netName,sigma=0.05,num_copy=3):
     in_img = Image.fromarray(in_img.astype(np.uint8))
     in_img = (transforms.ToTensor()(in_img)).unsqueeze_(0) # now 1x3x32x32
     out_img = net(in_img)
-    out_img = out_img.squeeze_().detach().numpy().transpose((1,2,0))
+    out_img = out_img.cpu().squeeze_().detach().numpy().transpose((1,2,0))
     return out_img
 
 def PSNR(X):
