@@ -12,7 +12,7 @@ from torchvision.utils import save_image
 import argparse
 import dataset
 import utils
-from models import *
+import models
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 denoising AE Training')
 parser.add_argument('--lr', default=1e-2, type=float, help='learning rate')
@@ -52,7 +52,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 netType = 'MLP2'
 
 netName = 'dae_%s'%(netType)
-net = dae.autoencoder(netType).to(device)
+net = models.dae.autoencoder(netType).to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
