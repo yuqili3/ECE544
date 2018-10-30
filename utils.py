@@ -64,8 +64,8 @@ def get_output(in_img,netName,sigma=0.05,num_copy=3):
     return out_img
 
 def PSNR(X):
-    s = X.shape
-    psnr = 20*np.log10(np.sqrt(s.prod()) * 255 / np.linalg.norm(X))
+    s = np.array(X.shape)
+    psnr = 20*np.log10(np.sqrt(s.prod()) / np.linalg.norm(X))
     return psnr
 
 def denois_example(index,netName='dae_MLP2',sigma=0.05,num_copy=3,dataDir='../cifar'):
@@ -74,11 +74,14 @@ def denois_example(index,netName='dae_MLP2',sigma=0.05,num_copy=3,dataDir='../ci
     img = testset.test_data[int(index//num_copy)]
     denoised = get_output(in_img=noisy, netName=netName, sigma=sigma, num_copy=num_copy)
     psnr = PSNR(img-denoised)
-    imsave('../result/test_noisy_%d'%(index),noisy)
-    imsave('../result/test_img_%d'%(index),img)
-    imsave('../result/test_denoised_%d'%(index),denoised)
+    print(np.max(img),np.min(img))
+    print(np.max(denoised),np.min(denoised))
+#    imsave('../result/test_noisy_%d.jpg'%(index),noisy)
+#    imsave('../result/test_img_%d.jpg'%(index),img)
+#    imsave('../result/test_denoised_%d.jpg'%(index),denoised)
     return psnr
 
 if __name__ == '__main__':
-    denois_example(0)
+    psnr = denois_example(0)
+    print(psnr)
     

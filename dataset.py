@@ -2,6 +2,7 @@ import torch.utils.data as data
 import numpy as np
 from PIL import Image
 import os
+import utils
 
 class noisy_cifar10(data.Dataset):
     def __init__(self, sigma, num_copy=3,dataDir='../cifar', train=True, transform=None, target_transform=None):
@@ -24,7 +25,8 @@ class noisy_cifar10(data.Dataset):
                 self.test_labels = db['test_labels']
                 self.test_data_noisy = db['test_data_noisy']
         else: 
-            raise ValueError('no file found! %s'%(fileName))
+            print('no file found! %s: generating:...'%(fileName))
+            utils.add_noise_and_save(dataDir=dataDir,outDir=dataDir,sigma=sigma,num_copy=num_copy)
     def __len__(self):
         if self.train:
             return len(self.train_data_noisy)
