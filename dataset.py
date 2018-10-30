@@ -13,21 +13,22 @@ class noisy_cifar10(data.Dataset):
         self.transform = transform
         self.target_transform = target_transform
         fileName = '%s/noisyCifar_sigma%.2f_copy%d.npz'%(dataDir,sigma,num_copy)
-        if os.path.isfile(fileName):
-            db = np.load(fileName)
-            assert sigma == db['sigma'] and num_copy == db['num_copy']
-            if self.train:
-                self.train_data = db['train_data']
-                self.train_labels = db['train_labels']
-                self.train_data_noisy = db['train_data_noisy']
-            else:
-                self.test_data = db['test_data']
-                self.test_labels = db['test_labels']
-                self.test_data_noisy = db['test_data_noisy']
-        else: 
+        if not os.path.isfile(fileName):
             print('no file found! %s: generating:...'%(fileName))
             utils.add_noise_and_save(dataDir=dataDir,outDir=dataDir,sigma=sigma,num_copy=num_copy)
             print('%s File Generated'%(fileName))
+        
+        db = np.load(fileName)
+        assert sigma == db['sigma'] and num_copy == db['num_copy']
+        if self.train:
+            self.train_data = db['train_data']
+            self.train_labels = db['train_labels']
+            self.train_data_noisy = db['train_data_noisy']
+        else:
+            self.test_data = db['test_data']
+            self.test_labels = db['test_labels']
+            self.test_data_noisy = db['test_data_noisy']
+            
     def __len__(self):
         if self.train:
             return len(self.train_data_noisy)
