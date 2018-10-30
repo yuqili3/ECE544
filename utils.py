@@ -82,6 +82,6 @@ def denois_example(index,netName='dae_MLP2',sigma=0.05,num_copy=3,dataDir='../ci
     return psnr
 
 if __name__ == '__main__':
-    psnr = denois_example(0)
+    psnr = denois_example(0, num_copy=1)
     print(psnr)
     
