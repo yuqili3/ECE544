@@ -1,18 +1,15 @@
 from __future__ import print_function
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
-import torch.utils.data as data
 
 import torchvision
 import torchvision.transforms as transforms
 
-import os
 import numpy as np
+from scipy.misc import imsave, imread
 from PIL import Image
+import dataset
+from models import *
 
 dataDir = '../cifar'
 outDir = '../cifar'
@@ -50,7 +47,7 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
 #if __name__=='__main__':
 #    add_noise_and_save(dataDir,outDir,sigma=0.05)
     
-def get_output(netName,sigma,num_copy=3,in_img):
+def get_output(in_img,netName,sigma=0.05,num_copy=3):
     # in_img: 32x32x3 np array, uint8 
     # out_img: 32x32x
     checkpoint = torch.load('../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
@@ -58,10 +55,9 @@ def get_output(netName,sigma,num_copy=3,in_img):
     net.load_state_dict(checkpoint['net'])
     
     in_img = Image.fromarray(in_img.astype(np.uint8))
-    in_img = (torch.ToTensor())(in_img).unsqueeze_(0) # now 1x3x32x32
+    in_img = (transforms.ToTensor())(in_img).unsqueeze_(0) # now 1x3x32x32
     out_img = net(in_img)
-    out_img = numpy.array(torch.squeeze_()).transpose((1,2,0))
-    
+    out_img = np.array(torch.squeeze_()).transpose((1,2,0))
     return out_img
 
 def PSNR(X):
@@ -69,8 +65,14 @@ def PSNR(X):
     psnr = 20*np.log10(np.sqrt(s.prod()) * 255 / np.linalg.norm(X))
     return psnr
 
-def denois_example(index):
-    
-
-    
+def denois_example(index,netName='dae_MLP2',sigma=0.05,num_copy=3,dataDir='../cifar'):
+    testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir,train=False)
+    noisy = testset.test_data_noisy[index]
+    img = testset.test_data[int(index//num_copy)]
+    denoised = get_output(in_img=noisy, netName=netName, sigma=sigma, num_copy=num_copy)
+    psnr = PSNR(img-denoised)
+    imsave('../result/test_noisy_%d'%(index),noisy)
+    imsave('../result/test_img_%d'%(index),img)
+    imsave('../result/test_denoised_%d'%(index),denoised)
+    return psnr
     
