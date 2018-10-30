@@ -78,4 +78,7 @@ def denois_example(index,netName='dae_MLP2',sigma=0.05,num_copy=3,dataDir='../ci
     imsave('../result/test_img_%d'%(index),img)
     imsave('../result/test_denoised_%d'%(index),denoised)
     return psnr
+
+if __name__ == '__main__':
+    denois_example(0)
     
