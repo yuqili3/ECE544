@@ -10,14 +10,15 @@ from torchvision import transforms
 from torchvision.utils import save_image
 
 import argparse
-import noisy_utils
+import dataset
+import utils
 from models import *
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 denoising AE Training')
 parser.add_argument('--lr', default=1e-2, type=float, help='learning rate')
 parser.add_argument('--epoch', default=20, type=int, help='number of training epochs')
 parser.add_argument('--copy', default=3, type=int, help='number of noisy image copies')
-parser.add_argument('--sigma', default=0.2, type=float, help='noise level sigma')
+parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 args = parser.parse_args()
 
@@ -28,17 +29,16 @@ num_copy = args.copy
 
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
+
 # Data
 print('==> Preparing data..')
 
-img_transform = transforms.Compose([
-    transforms.ToTensor()
-])
+img_transform = transforms.Compose([transforms.ToTensor()])
 
-trainset = noisy_utils.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
+trainset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
 trainloader = DataLoader(trainset, batch_size=128, shuffle=True)
 
-testset = noisy_utils.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
+testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
 testloader = DataLoader(testset, batch_size=100, shuffle=True)
 
 def pairwise_potential(img):
@@ -48,9 +48,11 @@ def pairwise_potential(img):
 
 print('==> Building model..')
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-netName = 'dae_MLP2'
-net = dae.autoencoder('MLP2')
-net = net.cuda()
+
+netType = 'MLP2'
+
+netName = 'dae_%s'%(netType)
+net = dae.autoencoder(netType).to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
@@ -59,9 +61,9 @@ if args.resume:
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
     assert os.path.isdir(os.path.normpath(dataDir+'/checkpoints')), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('../checkpoints/ckpt_%s.t7'%(netName))
+    checkpoint = torch.load('../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
     net.load_state_dict(checkpoint['net'])
-    best_acc = checkpoint['acc']
+    best_MSE = checkpoint['mse']
     start_epoch = checkpoint['epoch']
 
 
@@ -117,7 +119,7 @@ def test(epoch):
         }
         if not os.path.isdir(os.path.normpath('../checkpoints')):
             os.mkdir(os.path.normpath('../checkpoints'))
-        torch.save(state, '../checkpoints/ckpt_%s.t7'%(netName))
+        torch.save(state, '../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
         best_MSE = MSE
         
 for epoch in range(start_epoch, start_epoch+args.epoch):

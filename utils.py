@@ -4,6 +4,7 @@ import torch
 
 import torchvision
 import torchvision.transforms as transforms
+import torch.backends.cudnn as cudnn
 
 import numpy as np
 from scipy.misc import imsave, imread
@@ -52,6 +53,8 @@ def get_output(in_img,netName,sigma=0.05,num_copy=3):
     # out_img: 32x32x
     checkpoint = torch.load('../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
     net = dae.autoencoder(netName.split('_')[1]).cuda()
+    net = torch.nn.DataParallel(net)
+    cudnn.benchmark = True
     net.load_state_dict(checkpoint['net'])
     
     in_img = Image.fromarray(in_img.astype(np.uint8))
