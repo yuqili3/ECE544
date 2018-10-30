@@ -58,6 +58,8 @@ def get_output(in_img,netName,sigma=0.05,num_copy=3):
     cudnn.benchmark = True
     net.load_state_dict(checkpoint['net'])
     
+    if np.max(in_img) < 2:
+        in_img *= 255.0
     in_img = Image.fromarray(in_img.astype(np.uint8))
     in_img = (transforms.ToTensor()(in_img)).unsqueeze_(0) # now 1x3x32x32
     out_img = net(in_img)
@@ -71,8 +73,8 @@ def PSNR(X):
 
 def denois_example(index,netName='dae_MLP2',sigma=0.05,num_copy=3,dataDir='../cifar'):
     testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir,train=False)
-    noisy = testset.test_data_noisy[index]
-    img = testset.test_data[int(index//num_copy)]
+    noisy = testset.test_data_noisy[index] # range [0,1]
+    img = testset.test_data[int(index//num_copy)] # range [0,1]
     denoised = get_output(in_img=noisy, netName=netName, sigma=sigma, num_copy=num_copy)
     psnr = PSNR(img-denoised)
     print(np.max(img),np.min(img))
