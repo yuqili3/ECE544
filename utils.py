@@ -23,16 +23,17 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
     train_data = trainset.train_data/255.0
     N = len(train_data)
     train_data_noisy = np.zeros((num_copy*N, 32, 32, 3))
-    for copy in range(num_copy):
-        for i in range(N):
-            train_data_noisy[i*num_copy + copy] = train_data[i] + np.random.randn(32,32,3)*sigma
+    for i in range(N):
+        for copy in range(num_copy):
+            train_data_noisy[i*num_copy + copy] = np.clip(train_data[i]+np.random.normal(size=train_data[i].shape)*sigma,0.0, 1.0)
+
     
     test_data = testset.test_data/255.0
     N = len(test_data)
     test_data_noisy = np.zeros((num_copy*N, 32, 32, 3))
-    for copy in range(num_copy):
-        for i in range(N):
-            test_data_noisy[i*num_copy + copy] = test_data[i] + np.random.randn(32,32,3)*sigma
+    for i in range(N):
+        for copy in range(num_copy):    
+            test_data_noisy[i*num_copy + copy] = np.clip(test_data[i]+np.random.normal(size=test_data[i].shape)*sigma, 0.0,1.0)
 
     fileName = '%s/noisyCifar_sigma%.2f_copy%d'%(outDir,sigma,num_copy)
     np.savez(fileName, 
@@ -76,12 +77,12 @@ def denois_example(index,netName='dae_MLP2',sigma=0.05,num_copy=3,dataDir='../ci
     psnr = PSNR(img-denoised)
     print(np.max(img),np.min(img))
     print(np.max(denoised),np.min(denoised))
-#    imsave('../result/test_noisy_%d.jpg'%(index),noisy)
-#    imsave('../result/test_img_%d.jpg'%(index),img)
-#    imsave('../result/test_denoised_%d.jpg'%(index),denoised)
+    imsave('../result/test_noisy_%d.jpg'%(index),noisy)
+    imsave('../result/test_img_%d.jpg'%(index),img)
+    imsave('../result/test_denoised_%d.jpg'%(index),denoised)
     return psnr
 
 if __name__ == '__main__':
-    psnr = denois_example(0, num_copy=1)
+    psnr = denois_example(5, num_copy=1)
     print(psnr)
     
