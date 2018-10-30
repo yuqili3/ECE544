@@ -1,56 +1,8 @@
-from __future__ import print_function
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
 import torch.utils.data as data
-
-import torchvision
-import torchvision.transforms as transforms
-
-import os
 import numpy as np
 from PIL import Image
+import os
 
-dataDir = '../cifar'
-outDir = '../cifar'
-#dataDir = '/home/yuqi/spinner/dataset/cifar10'
-#outDir = dataDir
-def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
-    trainset = torchvision.datasets.CIFAR10(root=dataDir, train=True, download=True)
-    testset = torchvision.datasets.CIFAR10(root=dataDir, train=False, download=True)
-    
-    train_data = trainset.train_data/255.0
-    N = len(train_data)
-    train_data_noisy = np.zeros((num_copy*N, 32, 32, 3))
-    for copy in range(num_copy):
-        for i in range(N):
-            train_data_noisy[i*num_copy + copy] = train_data[i] + np.random.randn(32,32,3)*sigma
-    
-    test_data = testset.test_data/255.0
-    N = len(test_data)
-    test_data_noisy = np.zeros((num_copy*N, 32, 32, 3))
-    for copy in range(num_copy):
-        for i in range(N):
-            test_data_noisy[i*num_copy + copy] = test_data[i] + np.random.randn(32,32,3)*sigma
-
-    fileName = '%s/noisyCifar_sigma%.2f_copy%d'%(outDir,sigma,num_copy)
-    np.savez(fileName, 
-             train_data=train_data, 
-             train_labels=trainset.train_labels, 
-             train_data_noisy=train_data_noisy,
-             test_data=test_data, 
-             test_labels=testset.test_labels, 
-             test_data_noisy=test_data_noisy,
-             num_copy=num_copy,
-             sigma=sigma)
-
-#if __name__=='__main__':
-#    add_noise_and_save(dataDir,outDir,sigma=0.05)
-    
-    
 class noisy_cifar10(data.Dataset):
     def __init__(self, sigma, num_copy=3,dataDir='../cifar', train=True, transform=None, target_transform=None):
         self.sigma = sigma
@@ -106,5 +58,3 @@ class noisy_cifar10(data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
         return noisy, img, target
-    
-    
