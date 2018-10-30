@@ -58,9 +58,9 @@ def get_output(in_img,netName,sigma=0.05,num_copy=3):
     net.load_state_dict(checkpoint['net'])
     
     in_img = Image.fromarray(in_img.astype(np.uint8))
-    in_img = (torch.FloatTensor(in_img)).unsqueeze_(0) # now 1x3x32x32
+    in_img = (transforms.ToTensor()(in_img)).unsqueeze_(0) # now 1x3x32x32
     out_img = net(in_img)
-    out_img = np.array(out_img.squeeze_()).transpose((1,2,0))
+    out_img = out_img.squeeze_().detach().numpy().transpose((1,2,0))
     return out_img
 
 def PSNR(X):
