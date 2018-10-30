@@ -27,6 +27,7 @@ class noisy_cifar10(data.Dataset):
         else: 
             print('no file found! %s: generating:...'%(fileName))
             utils.add_noise_and_save(dataDir=dataDir,outDir=dataDir,sigma=sigma,num_copy=num_copy)
+            print('%s File Generated'%(fileName))
     def __len__(self):
         if self.train:
             return len(self.train_data_noisy)

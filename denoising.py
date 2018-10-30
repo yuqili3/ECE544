@@ -67,7 +67,7 @@ if args.resume:
     start_epoch = checkpoint['epoch']
 
 
-criterion = nn.BCELoss()
+criterion = nn.MSELoss()
 optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=1e-5)
 
 
