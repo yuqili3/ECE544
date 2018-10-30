@@ -18,7 +18,7 @@ class autoencoder(nn.Module):
         x = x.view(x.size(0),-1)
         x = self.encoder(x)
         x = self.decoder(x)
-        x = x.view(x.size(0), 3,32,32)
+        x = x.view(x.size(0),3,32,32)
         return x
     
     def _make_coder(self, cfg):
