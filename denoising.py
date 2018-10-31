@@ -27,7 +27,7 @@ lr = args.lr
 sigma = args.sigma
 num_copy = args.copy
 
-best_acc = 0  # best test accuracy
+best_MSE = float('inf')  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
 # Data
