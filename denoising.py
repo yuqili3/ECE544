@@ -34,7 +34,8 @@ start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 # Data
 print('==> Preparing data..')
 
-img_transform = transforms.Compose([transforms.ToTensor()])
+img_transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
 
 trainset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
 trainloader = DataLoader(trainset, batch_size=128, shuffle=True,num_workers=2)
