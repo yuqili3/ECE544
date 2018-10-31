@@ -49,7 +49,7 @@ def pairwise_potential(img):
 print('==> Building model..')
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-netType = 'MLP3'
+netType = 'CNN1'
 
 netName = 'dae_%s'%(netType)
 net = models.dae.autoencoder(netType).to(device)
@@ -81,7 +81,6 @@ def train(epoch):
         optimizer.zero_grad()
         outputs = net(noisy)
         loss = criterion(outputs, img)
-        # TODO: really uses BCE Loss?
         loss.backward()
         optimizer.step()
 
