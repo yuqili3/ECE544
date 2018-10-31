@@ -68,7 +68,7 @@ def get_output(in_img,netName,sigma=0.05,num_copy=1):
 
 def PSNR(X):
     s = np.array(X.shape)
-    psnr = 20*np.log10(np.sqrt(s.prod())*255 / np.linalg.norm(X))
+    psnr = 20*np.log10(np.sqrt(s.prod()) / np.linalg.norm(X))
     return psnr
 
 def denois_example(index,netName='dae_CNN2',sigma=0.05,num_copy=1,dataDir='../cifar'):
