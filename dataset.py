@@ -5,7 +5,7 @@ import os
 import utils
 
 class noisy_cifar10(data.Dataset):
-    def __init__(self, sigma, num_copy=3,dataDir='../cifar', train=True, transform=None, target_transform=None):
+    def __init__(self, num_train=5000, num_test=1000, sigma, num_copy=3,dataDir='../cifar', train=True, transform=None, target_transform=None):
         self.sigma = sigma
         self.num_copy = num_copy
         self.dataDir=dataDir
@@ -21,13 +21,13 @@ class noisy_cifar10(data.Dataset):
         db = np.load(fileName)
         assert sigma == db['sigma'] and num_copy == db['num_copy']
         if self.train:
-            self.train_data = db['train_data']
-            self.train_labels = db['train_labels']
-            self.train_data_noisy = db['train_data_noisy']
+            self.train_data = db['train_data'][:num_train]
+            self.train_labels = db['train_labels'][:num_train]
+            self.train_data_noisy = db['train_data_noisy'][:num_train]
         else:
-            self.test_data = db['test_data']
-            self.test_labels = db['test_labels']
-            self.test_data_noisy = db['test_data_noisy']
+            self.test_data = db['test_data'][:num_test]
+            self.test_labels = db['test_labels'][:num_test]
+            self.test_data_noisy = db['test_data_noisy'][:num_test]
             
     def __len__(self):
         if self.train:
