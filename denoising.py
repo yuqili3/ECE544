@@ -49,7 +49,7 @@ def pairwise_potential(img):
 print('==> Building model..')
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-netType = 'CNN1'
+netType = 'CNN2'
 
 netName = 'dae_%s'%(netType)
 net = models.dae.autoencoder(netType).to(device)
