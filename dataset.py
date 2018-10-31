@@ -5,7 +5,7 @@ import os
 import utils
 
 class noisy_cifar10(data.Dataset):
-    def __init__(self, num_train=5000, num_test=1000, sigma, num_copy=3,dataDir='../cifar', train=True, transform=None, target_transform=None):
+    def __init__(self, sigma, num_copy=1,num_train=5000, num_test=1000,dataDir='../cifar', train=True, transform=None, target_transform=None):
         self.sigma = sigma
         self.num_copy = num_copy
         self.dataDir=dataDir
