@@ -36,10 +36,10 @@ print('==> Preparing data..')
 
 img_transform = transforms.Compose([transforms.ToTensor()])
 
-trainset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True).cuda()
+trainset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
 trainloader = DataLoader(trainset, batch_size=128, shuffle=True,num_workers=2).cuda()
 
-testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False).cuda()
+testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
 testloader = DataLoader(testset, batch_size=100, shuffle=True,num_workers=2).cuda()
 
 def pairwise_potential(img):
