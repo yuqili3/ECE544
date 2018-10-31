@@ -64,12 +64,11 @@ def get_output(in_img,netName,sigma=0.05,num_copy=1):
     in_img = (transforms.ToTensor()(in_img)).unsqueeze_(0) # now 1x3x32x32
     out_img = net(in_img)
     out_img = out_img.cpu().squeeze_().detach().numpy().transpose((1,2,0))
-    print(np.max(out_img))
-    return out_img.astype(np.float64)
+    return out_img
 
 def PSNR(X):
     s = np.array(X.shape)
-    psnr = 20*np.log10(np.sqrt(s.prod()) / np.linalg.norm(X))
+    psnr = 20*np.log10(np.sqrt(s.prod())*255 / np.linalg.norm(X))
     return psnr
 
 def denois_example(index,netName='dae_CNN2',sigma=0.05,num_copy=1,dataDir='../cifar'):
@@ -77,7 +76,7 @@ def denois_example(index,netName='dae_CNN2',sigma=0.05,num_copy=1,dataDir='../ci
     noisy = testset.test_data_noisy[index] # range [0,1]
     img = testset.test_data[int(index//num_copy)] # range [0,1]
     denoised = get_output(in_img=noisy, netName=netName, sigma=sigma, num_copy=num_copy)
-    psnr = PSNR(img - denoised)
+    psnr = PSNR((img - denoised)*255)
     print(np.max(img),np.min(img))
     print(np.max(denoised),np.min(denoised))
     imsave('../result/test_noisy_%d.jpg'%(index),noisy)
