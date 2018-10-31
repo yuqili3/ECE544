@@ -51,7 +51,7 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
     
 def get_output(in_img,netName,sigma=0.05,num_copy=1):
     # in_img: 32x32x3 np array, uint8 
-    # out_img: 32x32x
+    # out_img: 32x32x3 np array float 32
     checkpoint = torch.load('../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
     net = models.dae.autoencoder(netName.split('_')[1]).cuda()
     net = torch.nn.DataParallel(net)
@@ -64,7 +64,7 @@ def get_output(in_img,netName,sigma=0.05,num_copy=1):
     in_img = (transforms.ToTensor()(in_img)).unsqueeze_(0) # now 1x3x32x32
     out_img = net(in_img)
     out_img = out_img.cpu().squeeze_().detach().numpy().transpose((1,2,0))
-    return out_img
+    return out_img.astype(np.float32)
 
 def PSNR(X):
     s = np.array(X.shape)
