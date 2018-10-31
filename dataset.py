@@ -62,3 +62,6 @@ class noisy_cifar10(data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
         return noisy, img, target
+    
+    
+    

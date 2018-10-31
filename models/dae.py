@@ -34,26 +34,25 @@ class autoencoder(nn.Module):
                 layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
             elif len(x) == 2:
                 layers += [nn.Linear(x[0],x[1])]
+                
             elif len(x) == 3:
+                layers += [nn.Conv2d(x[0],x[1],x[2],padding=1)]
                 if i < len(cfg)-1:
-                    layers += [nn.Conv2d(x[0],x[1],x[2],padding=1),
-                               nn.ReLU(True),
-                               nn.BatchNorm2d(x[1])] 
-                else:
-                    layers += [nn.Conv2d(x[0],x[1],x[2],padding=1),
-                               nn.ReLU(True)]
+                    layers += [nn.BatchNorm2d(x[1])] 
+                layers += [nn.ReLU(True)]
+                
             elif len(x) == 5:
+                layers += [nn.ConvTranspose2d(x[0],x[1],x[2],stride=x[3],padding=x[4])]
                 if i < len(cfg)-1:
-                    layers += [nn.ConvTranspose2d(x[0],x[1],x[2],stride=x[3],padding=x[4]),
-                               nn.ReLU(True),
-                               nn.BatchNorm2d(x[1])]
-                else:
-                    layers += [nn.ConvTranspose2d(x[0],x[1],x[2],stride=x[3],padding=x[4]),
-                               nn.ReLU(True)]    
+                    layers += [nn.BatchNorm2d(x[1])]
+                layers += [nn.ReLU(True)]
+                
             elif len(x) == 6:
-                layers += [nn.ConvTranspose2d(x[0],x[1],x[2],stride=x[3],padding=x[4],output_padding=x[5]),
-                               nn.ReLU(True),
-                               nn.BatchNorm2d(x[1])]
+                layers += [nn.ConvTranspose2d(x[0],x[1],x[2],stride=x[3],padding=x[4],output_padding=x[5])]
+                if i < len(cfg)-1:
+                    layers += [nn.BatchNorm2d(x[1])]
+                layers += [nn.ReLU(True)]
+                
         return nn.Sequential(*layers)
     
 def test():

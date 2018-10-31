@@ -5,6 +5,7 @@ from torch import nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 import torch.backends.cudnn as cudnn
+from torch.optim.lr_scheduler import MultiStepLR
 
 from torchvision import transforms
 from torchvision.utils import save_image
@@ -68,7 +69,8 @@ if args.resume:
 
 
 criterion = nn.MSELoss()
-optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=1e-5)
+optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
+scheduler = MultiStepLR(optimizer, milestones=[30,60,90,120], gamma=0.2)
 
 
 def train(epoch):
@@ -76,6 +78,7 @@ def train(epoch):
     net.train()
     train_loss = 0
     MSE_loss = 0
+    scheduler.step(epoch)
     for batch_idx, (noisy, img, targets) in enumerate(trainloader):
         noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
         optimizer.zero_grad()
