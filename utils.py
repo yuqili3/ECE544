@@ -71,7 +71,7 @@ def PSNR(X):
     psnr = 20*np.log10(np.sqrt(s.prod()) / np.linalg.norm(X))
     return psnr
 
-def denois_example(index,netName='dae_CNN2',sigma=0.05,num_copy=1,dataDir='../cifar'):
+def denois_example(index,netName='dae_CNN2',sigma=0.1,num_copy=1,dataDir='../cifar'):
     testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir,train=False)
     noisy = testset.test_data_noisy[index] # range [0,1]
     img = testset.test_data[int(index//num_copy)] # range [0,1]
