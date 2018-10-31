@@ -91,7 +91,6 @@ def train(epoch):
         
 def test(epoch):
     global best_MSE
-    best_MSE = float('inf')
     net.eval()
     test_loss = 0
     MSE_loss = 0
