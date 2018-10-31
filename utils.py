@@ -49,7 +49,7 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
 #if __name__=='__main__':
 #    add_noise_and_save(dataDir,outDir,sigma=0.05)
     
-def get_output(in_img,netName,sigma=0.05,num_copy=3):
+def get_output(in_img,netName,sigma=0.05,num_copy=1):
     # in_img: 32x32x3 np array, uint8 
     # out_img: 32x32x
     checkpoint = torch.load('../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
@@ -71,7 +71,7 @@ def PSNR(X):
     psnr = 20*np.log10(np.sqrt(s.prod()) / np.linalg.norm(X))
     return psnr
 
-def denois_example(index,netName='dae_MLP2',sigma=0.05,num_copy=3,dataDir='../cifar'):
+def denois_example(index,netName='dae_CNN1',sigma=0.05,num_copy=1,dataDir='../cifar'):
     testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir,train=False)
     noisy = testset.test_data_noisy[index] # range [0,1]
     img = testset.test_data[int(index//num_copy)] # range [0,1]
