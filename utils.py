@@ -108,7 +108,7 @@ def PSNR(X):
     return psnr
 
 def denois_example(index,netName='dncnn_CNN32',sigma=0.1,num_copy=1,dataDir='../stl10'):
-    testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir,train=False)
+    testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir,train=False)
     noisy = testset.test_data_noisy[index] # range [0,1]
     img = testset.test_data[int(index//num_copy)] # range [0,1]
     denoised = get_output(in_img=noisy, netName=netName, sigma=sigma, num_copy=num_copy)
