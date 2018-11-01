@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 import os
 import utils
-
+            
 class noisy_cifar10(data.Dataset):
     def __init__(self, sigma, num_copy=1,num_train=5000, num_test=1000,dataDir='../cifar', train=True, transform=None, target_transform=None):
         self.sigma = sigma
@@ -63,5 +63,28 @@ class noisy_cifar10(data.Dataset):
             target = self.target_transform(target)
         return noisy, img, target
     
-    
+class noisy_stl10(noisy_cifar10):
+    def __init__(self, sigma, num_copy=1,num_train=5000, num_test=8000,dataDir='../stl10', train=True, transform=None, target_transform=None):
+        self.sigma = sigma
+        self.num_copy = num_copy
+        self.dataDir=dataDir
+        self.train = train
+        self.transform = transform
+        self.target_transform = target_transform
+        fileName = '%s/noisySTL10_sigma%.2f_copy%d.npz'%(dataDir,sigma,num_copy)
+        if not os.path.isfile(fileName):
+            print('no file found! %s: generating:...'%(fileName))
+            utils.add_noise_and_save(dataDir=dataDir,outDir=dataDir,sigma=sigma,num_copy=num_copy)
+            print('%s File Generated'%(fileName))
+            
+        db = np.load(fileName)
+        assert sigma == db['sigma'] and num_copy == db['num_copy']
+        if self.train:
+            self.train_data = db['train_data'][:num_train]
+            self.train_labels = db['train_labels'][:num_train]
+            self.train_data_noisy = db['train_data_noisy'][:num_train]
+        else:
+            self.test_data = db['test_data'][:num_test]
+            self.test_labels = db['test_labels'][:num_test]
+            self.test_data_noisy = db['test_data_noisy'][:num_test]
     

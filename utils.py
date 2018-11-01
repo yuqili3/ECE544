@@ -12,6 +12,8 @@ from PIL import Image
 import dataset
 import models
 
+# cifar-10 previous
+'''
 dataDir = '../cifar'
 outDir = '../cifar'
 #dataDir = '/home/yuqi/spinner/dataset/cifar10'
@@ -42,6 +44,39 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
              train_data_noisy=train_data_noisy,
              test_data=test_data, 
              test_labels=testset.test_labels, 
+             test_data_noisy=test_data_noisy,
+             num_copy=num_copy,
+             sigma=sigma)
+'''
+
+dataDir = outDir = '../stl10'
+#dataDir = outDir = '../Dataset/stl10'
+def add_noise_and_save(dataDir, outDir, sigma,num_copy = 1):
+    trainset = torchvision.datasets.STL10(root=dataDir, split='train', download=True)
+    testset = torchvision.datasets.STLR10(root=dataDir, split='test', download=True)
+    
+    train_data = trainset.data/255.0
+    train_data_noisy = (np.zeros(train_data.shape) for i in range(num_copy))
+    train_data_noisy = np.vstack(train_data_noisy)
+    for i in range(len(train_data)):
+        for copy in range(num_copy):
+            train_data_noisy[i*num_copy + copy] = np.clip(train_data[i]+np.random.normal(size=train_data[i].shape)*sigma,0.0, 1.0)
+
+    
+    test_data = testset.data/255.0
+    test_data_noisy = (np.zeros(test_data.shape) for i in range(num_copy))
+    test_data_noisy = np.vstack(test_data_noisy)
+    for i in range(len(test_data)):
+        for copy in range(num_copy):    
+            test_data_noisy[i*num_copy + copy] = np.clip(test_data[i]+np.random.normal(size=test_data[i].shape)*sigma, 0.0,1.0)
+
+    fileName = '%s/noisySTL10_sigma%.2f_copy%d'%(outDir,sigma,num_copy)
+    np.savez(fileName, 
+             train_data=train_data, 
+             train_labels=trainset.labels.astype(np.int), 
+             train_data_noisy=train_data_noisy,
+             test_data=test_data, 
+             test_labels=testset.labels.astype(np.int), 
              test_data_noisy=test_data_noisy,
              num_copy=num_copy,
              sigma=sigma)
@@ -85,7 +120,7 @@ def denois_example(index,netName='dncnn_CNN16',sigma=0.1,num_copy=1,dataDir='../
     imsave('../result/test_denoised_%d.jpg'%(index),denoised)
     return psnr
 
-if __name__ == '__main__':
-    psnr = denois_example(8, num_copy=1)
-    print(psnr)
+#if __name__ == '__main__':
+#    psnr = denois_example(8, num_copy=1)
+#    print(psnr)
     

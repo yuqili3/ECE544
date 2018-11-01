@@ -4,7 +4,9 @@ import torch.nn as nn
 
 cfg = {
        'CNN16':[17,16,3],
-       'CNN32':[17,32,3],        
+       'CNN32':[17,32,3],   
+       'CNN64':[17,64,3],
+       'CNN32_5':[17,32,5]
        }
 class deepcnn(nn.Module):
     def __init__(self, name):

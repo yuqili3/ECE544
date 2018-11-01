@@ -23,7 +23,7 @@ parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 args = parser.parse_args()
 
-dataDir = '../cifar'
+dataDir = '../stl10'
 lr = args.lr
 sigma = args.sigma
 num_copy = args.copy
@@ -36,10 +36,10 @@ print('==> Preparing data..')
 
 img_transform = transforms.Compose([transforms.ToTensor()])
 
-trainset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
+trainset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
 trainloader = DataLoader(trainset, batch_size=128, shuffle=True,num_workers=2)
 
-testset = dataset.noisy_cifar10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
+testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
 testloader = DataLoader(testset, batch_size=100, shuffle=True,num_workers=2)
 
 def pairwise_potential(img):
