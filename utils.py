@@ -89,7 +89,7 @@ def get_output(in_img,netName,sigma=0.05,num_copy=1):
     # out_img: 32x32x3 np array float 32
     checkpoint = torch.load('../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
 #    net = models.dae.autoencoder(netName.split('_')[1]).cuda()
-    net = models.dncnn.deepcnn(netName.split('_')[1]).cuda()
+    net = models.dncnn.deepcnn(netName[6:]).cuda()
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
     net.load_state_dict(checkpoint['net'])
