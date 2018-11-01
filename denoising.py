@@ -85,12 +85,12 @@ def train(epoch):
         noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
         optimizer.zero_grad()
         outputs = net(noisy)
-        loss = criterion(outputs, noisy-img)
+        loss = criterion(outputs, img)
         loss.backward()
         optimizer.step()
 
         train_loss += loss.item()
-        MSE_loss += nn.MSELoss()(outputs, noisy-img).item()
+        MSE_loss += nn.MSELoss()(outputs, img).item()
 
     print('TRAIN: Loss: %.6f | MSE Loss: %.6f'% (train_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
         
@@ -103,10 +103,10 @@ def test(epoch):
         for batch_idx, (noisy, img, targets) in enumerate(testloader):
             noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
             outputs = net(noisy)
-            loss = criterion(outputs, noisy-img)
+            loss = criterion(outputs, img)
             
             test_loss += loss.item()
-            MSE_loss += nn.MSELoss()(outputs,noisy- img).item()
+            MSE_loss += nn.MSELoss()(outputs,img).item()
             
     print('\nTest: Epoch: %d / %d' %(epoch, args.epoch))
     print('Test: Loss: %.6f | MSE Loss: %.6f'% (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
