@@ -12,8 +12,8 @@ class deepcnn(nn.Module):
         self.dncnn = self._make_dncnn(cfg[name])
 
     def forward(self, x):
-        x = self.dncnn(x)
-        return x
+        out = self.dncnn(x)
+        return x-out
     
     def _make_dncnn(self, cfg):
         layers = []
