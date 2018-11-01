@@ -55,7 +55,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 #net = models.dae.autoencoder(netType).to(device)
 netType = 'CNN16'
 netName = 'dncnn_%s'%(netType)
-net = models.dncnn(netType).to(device)
+net = models.deepcnn(netType).to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
