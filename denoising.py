@@ -76,7 +76,7 @@ scheduler = MultiStepLR(optimizer, milestones=[20,50,80,120], gamma=0.2)
 
 
 def train(epoch):
-    print('\nTRAIN: Epoch: %d / %d' %(epoch, args.epoch))
+    print('\nTRAIN: Epoch: %d ' %(epoch))
     net.train()
     train_loss = 0
     MSE_loss = 0
@@ -108,7 +108,7 @@ def test(epoch):
             test_loss += loss.item()
             MSE_loss += nn.MSELoss()(outputs,img).item()
             
-    print('\nTest: Epoch: %d / %d' %(epoch, args.epoch))
+    print('\nTest: Epoch: %d ' %(epoch))
     print('Test: Loss: %.6f | MSE Loss: %.6f'% (test_loss/(batch_idx+1), MSE_loss/(batch_idx+1)))
 
     # Save checkpoint.
