@@ -50,10 +50,12 @@ def pairwise_potential(img):
 print('==> Building model..')
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-netType = 'CNN1'
-
-netName = 'dae_%s'%(netType)
-net = models.dae.autoencoder(netType).to(device)
+#netType = 'CNN1'
+#netName = 'dae_%s'%(netType)
+#net = models.dae.autoencoder(netType).to(device)
+netType = 'CNN16'
+netName = 'dncnn_%s'%(netType)
+net = models.dncnn(netType).to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
