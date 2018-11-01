@@ -53,7 +53,7 @@ dataDir = outDir = '../stl10'
 #dataDir = outDir = '../Dataset/stl10'
 def add_noise_and_save(dataDir, outDir, sigma,num_copy = 1):
     trainset = torchvision.datasets.STL10(root=dataDir, split='train', download=True)
-    testset = torchvision.datasets.STLR10(root=dataDir, split='test', download=True)
+    testset = torchvision.datasets.STL10(root=dataDir, split='test', download=True)
     
     train_data = trainset.data/255.0
     train_data_noisy = (np.zeros(train_data.shape) for i in range(num_copy))
