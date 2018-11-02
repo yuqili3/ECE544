@@ -49,7 +49,7 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 3):
              sigma=sigma)
 '''
 
-dataDir = outDir = '../stl10'
+#dataDir = outDir = '../stl10'
 #dataDir = outDir = '../Dataset/stl10'
 def add_noise_and_save(dataDir, outDir, sigma,num_copy = 1):
     trainset = torchvision.datasets.STL10(root=dataDir, split='train', download=True)
@@ -107,7 +107,7 @@ def PSNR(X):
     psnr = 20*np.log10(np.sqrt(s.prod()) / np.linalg.norm(X))
     return psnr
 
-def denois_example(index,netName='dncnn_CNN32_5',sigma=0.1,num_copy=1,dataDir='../stl10'):
+def denois_example(index,netName='dncnn_CNN64',sigma=0.1,num_copy=1,dataDir='../stl10'):
     testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir,train=False)
     noisy = testset.test_data_noisy[index] # range [0,1]
     img = testset.test_data[int(index//num_copy)] # range [0,1]

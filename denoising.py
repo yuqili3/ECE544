@@ -23,7 +23,8 @@ parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 args = parser.parse_args()
 
-dataDir = '../stl10'
+#dataDir = '../stl10'
+dataDir = '/home/yuqi/spinner/dataset/stl10'
 lr = args.lr
 sigma = args.sigma
 num_copy = args.copy
@@ -37,7 +38,7 @@ print('==> Preparing data..')
 img_transform = transforms.Compose([transforms.ToTensor()])
 
 trainset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
-trainloader = DataLoader(trainset, batch_size=128, shuffle=True)
+trainloader = DataLoader(trainset, batch_size=64, shuffle=True)
 
 testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
 testloader = DataLoader(testset, batch_size=100, shuffle=True)
@@ -53,7 +54,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 #netType = 'CNN1'
 #netName = 'dae_%s'%(netType)
 #net = models.dae.autoencoder(netType).to(device)
-netType = 'CNN32_5'
+netType = 'CNN64'
 netName = 'dncnn_%s'%(netType)
 net = models.dncnn.deepcnn(netType).to(device)
 if device == 'cuda':

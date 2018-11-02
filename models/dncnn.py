@@ -7,6 +7,7 @@ cfg = {
        'CNN32':[17,32,3,1],   
        'CNN64':[17,64,3,1],
        'CNN32_5':[17,32,5,2],
+       'CNN64_5':[17,64,5,2],
        }
 class deepcnn(nn.Module):
     def __init__(self, name):
