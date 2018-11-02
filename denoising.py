@@ -16,7 +16,7 @@ import utils
 import models
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 denoising AE Training')
-parser.add_argument('--lr', default=1e-2, type=float, help='learning rate')
+parser.add_argument('--lr', default=1e-3, type=float, help='learning rate')
 parser.add_argument('--epoch', default=20, type=int, help='number of training epochs')
 parser.add_argument('--copy', default=3, type=int, help='number of noisy image copies')
 parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma')
@@ -54,7 +54,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 #netType = 'CNN1'
 #netName = 'dae_%s'%(netType)
 #net = models.dae.autoencoder(netType).to(device)
-netType = 'CNN64'
+netType = 'CNN64_5'
 netName = 'dncnn_%s'%(netType)
 net = models.dncnn.deepcnn(netType).to(device)
 if device == 'cuda':
@@ -73,7 +73,7 @@ if args.resume:
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-5)
-scheduler = MultiStepLR(optimizer, milestones=[20,50,80,120], gamma=0.2)
+scheduler = MultiStepLR(optimizer, milestones=[20,50,80,120], gamma=0.1)
 
 
 def train(epoch):
