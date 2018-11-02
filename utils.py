@@ -122,6 +122,6 @@ def denois_example(index,netName='dncnn_CNN64',sigma=0.1,num_copy=1,dataDir='/ho
     return psnr
 
 if __name__ == '__main__':
-    psnr = denois_example(8, num_copy=1)
+    psnr = denois_example(5, num_copy=1)
     print(psnr)
     
