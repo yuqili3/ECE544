@@ -38,10 +38,10 @@ print('==> Preparing data..')
 img_transform = transforms.Compose([transforms.ToTensor()])
 
 trainset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
-trainloader = DataLoader(trainset, batch_size=64, shuffle=True)
+trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
 
 testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
-testloader = DataLoader(testset, batch_size=50, shuffle=True)
+testloader = DataLoader(testset, batch_size=20, shuffle=True)
 
 def pairwise_potential(img):
     # TODO: implement sqaure pairwise potential
