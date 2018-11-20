@@ -1,4 +1,5 @@
 import torch.utils.data as data
+import torchvision.transforms as transforms
 import numpy as np
 from PIL import Image
 import os
@@ -114,4 +115,4 @@ class denoised_stl10(noisy_cifar10):
             self.test_labels = db['test_labels'][:num_test]
 
 if __name__ == '__main__':
-    trainset = denoised_stl10(sigma=0.1,netName='dncnn_CNN16',dataDir='../stl10')
+    trainset = denoised_stl10(sigma=0.1,netName='dncnn_CNN16',dataDir='../stl10',transform=transforms.ToTensor())
