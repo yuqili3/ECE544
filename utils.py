@@ -109,7 +109,7 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
         for batch_idx, (noisy, img, targets) in enumerate(trainloader):
             noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
             outputs = net(noisy) # now N*3*96*96
-            outputs = outputs.cpu().detach().numpy().transpose((1,2,0)) # now N*96*96*3
+            outputs = outputs.cpu().detach().numpy().transpose((0,2,3,1)) # now N*96*96*3
             train_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
             for i in range(len(outputs)):
                 out_img = np.clip(outputs[i],0,1)
@@ -121,7 +121,7 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
         for batch_idx, (noisy, img, targets) in enumerate(testloader):
             noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
             outputs = net(noisy) # now N*3*96*96
-            outputs = outputs.cpu().detach().numpy().transpose((1,2,0)) # now N*96*96*3
+            outputs = outputs.cpu().detach().numpy().transpose((0,2,3,1)) # now N*96*96*3
             test_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
             for i in range(len(outputs)):
                 out_img = np.clip(outputs[i],0,1)
