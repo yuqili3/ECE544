@@ -112,9 +112,9 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
             outputs = outputs.cpu().detach().numpy().transpose((0,2,3,1)) # now N*96*96*3
             train_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
             for i in range(len(outputs)):
-                if img_idx%100 == 0:
+                if img_idx%500 == 0:
                     out_img = np.clip(outputs[i],0,1)
-                    imsave('%s/images/train_denoised_%d.jpg'%(outDir,img_idx),out_img)
+                    imsave('%s/images/%s_train_denoised_%d.jpg'%(outDir,netName,img_idx),out_img)
                 img_idx += 1
     
     with torch.no_grad():
@@ -127,7 +127,11 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
             for i in range(len(outputs)):
                 if img_idx%100 == 0:
                     out_img = np.clip(outputs[i],0,1)
-                    imsave('%s/images/test_denoised_%d.jpg'%(outDir,img_idx),out_img)
+                    imsave('%s/images/%s_test_denoised_%d.jpg'%(outDir,netName,img_idx),out_img)
+                    img_clean=img.cpu().detach().numpy().transpose((0,2,3,1))[i]
+                    imsave('%s/images/%s_test_img_%d.jpg'%(outDir,netName,img_idx),img_clean)
+                    noisy=noisy.cpu().detach().numpy().transpose((0,2,3,1))[i]
+                    imsave('%s/images/%s_test_noisy_%d.jpg'%(outDir,netName,img_idx),noisy)
                 img_idx += 1
                 
     fileName = '%s/denoisedSTL10_%s_sigma%.2f_copy%d.npz'%(dataDir,netName,sigma,num_copy)
