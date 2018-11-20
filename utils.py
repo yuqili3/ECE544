@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import torch
+from torch.utils.data import DataLoader
 
 import torchvision
 import torchvision.transforms as transforms
@@ -83,6 +84,62 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 1):
              num_copy=num_copy,
              sigma=sigma)
 
+
+def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
+    checkpoint = torch.load('../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
+    net = models.dncnn.deepcnn(netName[6:]).cuda()
+    net = torch.nn.DataParallel(net)
+    cudnn.benchmark = True
+    net.load_state_dict(checkpoint['net'])
+    device = 'cuda'
+    img_transform = transforms.Compose([transforms.ToTensor()])
+    
+    batch_size = 32
+    trainset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
+    trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=False)
+    testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
+    testloader = DataLoader(testset, batch_size=batch_size, shuffle=False)
+    
+    
+    train_data_denoised = np.zeros(trainset.train_data.shape)
+    test_data_denoised = np.zeros(testset.test_data.shape)
+    
+    with torch.no_grad():
+        img_idx = 0
+        for batch_idx, (noisy, img, targets) in enumerate(trainloader):
+            noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
+            outputs = net(noisy) # now N*3*96*96
+            outputs = outputs.cpu().detach().numpy().transpose((1,2,0)) # now N*96*96*3
+            train_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
+            for i in range(len(outputs)):
+                out_img = np.clip(outputs[i],0,1)
+                imsave('%s/train_denoised_%d'%(outDir,img_idx),out_img)
+                img_idx += 1
+    
+    with torch.no_grad():
+        img_idx = 0
+        for batch_idx, (noisy, img, targets) in enumerate(testloader):
+            noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
+            outputs = net(noisy) # now N*3*96*96
+            outputs = outputs.cpu().detach().numpy().transpose((1,2,0)) # now N*96*96*3
+            test_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
+            for i in range(len(outputs)):
+                out_img = np.clip(outputs[i],0,1)
+                imsave('%s/test_denoised_%d'%(outDir,img_idx),out_img)
+                img_idx += 1
+                
+    fileName = '%s/denoisedSTL10_%s_sigma%.2f_copy%d.npz'%(dataDir,netName,sigma,num_copy)
+    np.savez(fileName, 
+             train_data_denoised=train_data_denoised, 
+             train_labels=trainset.labels.astype(np.int), 
+             train_data=trainset.train_data,
+             test_data_denoised=test_data_denoised, 
+             test_labels=testset.labels.astype(np.int), 
+             test_data=testset.test_data,
+             num_copy=num_copy,
+             sigma=sigma,
+             netName=netName)
+            
 #if __name__=='__main__':
 #    add_noise_and_save(dataDir,outDir,sigma=0.05)
     

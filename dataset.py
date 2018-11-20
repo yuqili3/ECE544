@@ -80,11 +80,38 @@ class noisy_stl10(noisy_cifar10):
         db = np.load(fileName)
         assert sigma == db['sigma'] and num_copy == db['num_copy']
         if self.train:
-            self.train_data = np.transpose(db['train_data'][:num_train],(0,2,3,1))
+            self.train_data = np.transpose(db['train_data'][:num_train],(0,2,3,1)) # previously N*3*96*96, now N*96*96*3
             self.train_data_noisy = np.transpose(db['train_data_noisy'][:num_train],(0,2,3,1))
             self.train_labels = db['train_labels'][:num_train]
         else:
             self.test_data = np.transpose(db['test_data'][:num_test],(0,2,3,1))
             self.test_data_noisy = np.transpose(db['test_data_noisy'][:num_test],(0,2,3,1))
             self.test_labels = db['test_labels'][:num_test]
-    
+
+class denoised_stl10(noisy_cifar10):
+    def __init__(self,sigma,netName, num_copy=1,num_train=2000, num_test=500,dataDir='../stl10', train=True, transform=None, target_transform=None):
+        self.sigma = sigma
+        self.num_copy = num_copy
+        self.dataDir=dataDir
+        self.train = train
+        self.transform = transform
+        self.target_transform = target_transform
+        fileName = '%s/denoisedSTL10_%s_sigma%.2f_copy%d.npz'%(dataDir,netName,sigma,num_copy)
+        if not os.path.isfile(fileName):
+            print('no file found! %s: generating:...'%(fileName))
+            utils.get_denoised_dataset(dataDir=dataDir,outDir=dataDir,sigma=sigma,netName=netName, num_copy=num_copy)
+            print('%s File Generated'%(fileName))
+            
+        db = np.load(fileName)
+        assert sigma == db['sigma'] and num_copy == db['num_copy']
+        if self.train:
+            self.train_data = np.transpose(db['train_data'][:num_train],(0,2,3,1))
+            self.train_data_denoised = np.transpose(db['train_data_denoised'][:num_train],(0,2,3,1))
+            self.train_labels = db['train_labels'][:num_train]
+        else:
+            self.test_data = np.transpose(db['test_data'][:num_test],(0,2,3,1))
+            self.test_data_denoised = np.transpose(db['test_data_denoised'][:num_test],(0,2,3,1))
+            self.test_labels = db['test_labels'][:num_test]
+
+if __name__ == '__main__':
+    trainset = denoised_stl10(sigma=0.1,netName='dncnn_CNN16',dataDir='../stl10')
