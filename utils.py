@@ -133,10 +133,10 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
     fileName = '%s/denoisedSTL10_%s_sigma%.2f_copy%d.npz'%(dataDir,netName,sigma,num_copy)
     np.savez(fileName, 
              train_data_denoised=train_data_denoised, 
-             train_labels=trainset.labels.astype(np.int), 
+             train_labels=trainset.train_labels, 
              train_data=trainset.train_data,
              test_data_denoised=test_data_denoised, 
-             test_labels=testset.labels.astype(np.int), 
+             test_labels=testset.test_labels, 
              test_data=testset.test_data,
              num_copy=num_copy,
              sigma=sigma,
