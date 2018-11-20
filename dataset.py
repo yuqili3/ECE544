@@ -105,20 +105,14 @@ class denoised_stl10(noisy_cifar10):
             
         db = np.load(fileName)
         assert sigma == db['sigma'] and num_copy == db['num_copy']
-#        if self.train:
-#            self.train_data = np.transpose(db['train_data'][:num_train],(0,2,3,1))
-#            self.train_data_denoised = np.transpose(db['train_data_denoised'][:num_train],(0,2,3,1))
-#            self.train_labels = db['train_labels'][:num_train]
-#        else:
-#            self.test_data = np.transpose(db['test_data'][:num_test],(0,2,3,1))
-#            self.test_data_denoised = np.transpose(db['test_data_denoised'][:num_test],(0,2,3,1))
-#            self.test_labels = db['test_labels'][:num_test]
         if self.train:
             self.train_data = db['train_data'][:num_train]
+            self.train_data_noisy=db['train_data_noisy'][:num_train]
             self.train_data_denoised = db['train_data_denoised'][:num_train]
             self.train_labels = db['train_labels'][:num_train]
         else:
             self.test_data = db['test_data'][:num_test]
+            self.test_data_noisy=db['test_data_noisy'][:num_test]
             self.test_data_denoised = db['test_data_denoised'][:num_test]
             self.test_labels = db['test_labels'][:num_test]
 
