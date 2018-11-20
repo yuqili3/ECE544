@@ -94,11 +94,12 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
     device = 'cuda'
     img_transform = transforms.Compose([transforms.ToTensor()])
     
-    batch_size = 32
+    batch_size_train = 32
+    batch_size_test = 20
     trainset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
-    trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=False)
+    trainloader = DataLoader(trainset, batch_size=batch_size_train, shuffle=False)
     testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
-    testloader = DataLoader(testset, batch_size=batch_size, shuffle=False)
+    testloader = DataLoader(testset, batch_size=batch_size_test, shuffle=False)
     
     
     train_data_denoised = np.zeros(trainset.train_data.shape)
@@ -110,7 +111,7 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
             noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
             outputs = net(noisy) # now N*3*96*96
             outputs = outputs.cpu().detach().numpy().transpose((0,2,3,1)) # now N*96*96*3
-            train_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
+            train_data_denoised[batch_idx*batch_size_train:(batch_idx+1)*batch_size_train]=outputs
 #            for i in range(len(outputs)):
 #                if img_idx%500 == 0:
 #                    out_img = np.clip(outputs[i],0,1)
@@ -123,7 +124,7 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
             noisy, img, targets = noisy.to(device), img.to(device), targets.to(device)
             outputs = net(noisy) # now N*3*96*96
             outputs = outputs.cpu().detach().numpy().transpose((0,2,3,1)) # now N*96*96*3
-            test_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
+            test_data_denoised[batch_idx*batch_size_test:(batch_idx+1)*batch_size_test]=outputs
             for i in range(len(outputs)):
                 if img_idx%100 == 0:
                     out_img = np.clip(outputs[i],0,1)

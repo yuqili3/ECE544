@@ -9,6 +9,7 @@ cfg = {
        'CNN128':[17,128,3,1],
        'CNN32_5':[17,32,5,2],
        'CNN64_5':[17,64,5,2],
+       'CNN128_5':[17,128,5,2],
        }
 class deepcnn(nn.Module):
     def __init__(self, name):
