@@ -112,8 +112,9 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
             outputs = outputs.cpu().detach().numpy().transpose((0,2,3,1)) # now N*96*96*3
             train_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
             for i in range(len(outputs)):
-                out_img = np.clip(outputs[i],0,1)
-                imsave('%s/train_denoised_%d'%(outDir,img_idx),out_img)
+                if img_idx%100 == 0:
+                    out_img = np.clip(outputs[i],0,1)
+                    imsave('%s/images/train_denoised_%d.jpg'%(outDir,img_idx),out_img)
                 img_idx += 1
     
     with torch.no_grad():
@@ -124,8 +125,9 @@ def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
             outputs = outputs.cpu().detach().numpy().transpose((0,2,3,1)) # now N*96*96*3
             test_data_denoised[batch_idx*batch_size:(batch_idx+1)*batch_size]=outputs
             for i in range(len(outputs)):
-                out_img = np.clip(outputs[i],0,1)
-                imsave('%s/test_denoised_%d'%(outDir,img_idx),out_img)
+                if img_idx%100 == 0:
+                    out_img = np.clip(outputs[i],0,1)
+                    imsave('%s/images/test_denoised_%d.jpg'%(outDir,img_idx),out_img)
                 img_idx += 1
                 
     fileName = '%s/denoisedSTL10_%s_sigma%.2f_copy%d.npz'%(dataDir,netName,sigma,num_copy)
