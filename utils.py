@@ -59,18 +59,18 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 1):
     train_data = trainset.data/255.0
     train_data_noisy = (np.zeros(train_data.shape) for i in range(num_copy))
     train_data_noisy = np.vstack(train_data_noisy)
+    np.random.seed(0) # jsut to make sure we are getting the same noisy image
     for i in range(len(train_data)):
         for copy in range(num_copy):
-            np.random.seed(0) # jsut to make sure we are getting the same noisy image
             train_data_noisy[i*num_copy + copy] = np.clip(train_data[i]+np.random.normal(size=train_data[i].shape)*sigma,0.0, 1.0)
 
     
     test_data = testset.data/255.0
     test_data_noisy = (np.zeros(test_data.shape) for i in range(num_copy))
-    test_data_noisy = np.vstack(test_data_noisy)
+    test_data_noisy = np.vstack(test_data_noisy)    
+    np.random.seed(1)
     for i in range(len(test_data)):
         for copy in range(num_copy):
-            np.random.seed(1)
             test_data_noisy[i*num_copy + copy] = np.clip(test_data[i]+np.random.normal(size=test_data[i].shape)*sigma, 0.0,1.0)
 
     fileName = '%s/noisySTL10_sigma%.2f_copy%d'%(outDir,sigma,num_copy)
