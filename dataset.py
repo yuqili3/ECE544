@@ -93,7 +93,7 @@ class denoised_stl10(noisy_cifar10):
     def __init__(self,sigma,netName, num_copy=1,num_train=2000, num_test=500,dataDir='../stl10', train=True, transform=None, target_transform=None):
         self.sigma = sigma
         self.num_copy = num_copy
-        self.dataDir=dataDir
+        self.dataDir=dataDir    
         self.train = train
         self.transform = transform
         self.target_transform = target_transform

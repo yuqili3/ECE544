@@ -25,6 +25,8 @@ args = parser.parse_args()
 
 dataDir = '../stl10'
 #dataDir = '/home/yuqi/spinner/dataset/stl10'
+num_train=2000 # max 5000
+num_test=500 # max 8000
 lr = args.lr
 sigma = args.sigma
 num_copy = args.copy
@@ -37,10 +39,9 @@ print('==> Preparing data..')
 
 img_transform = transforms.Compose([transforms.ToTensor()])
 
-trainset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
+trainset = dataset.noisy_stl10(sigma, num_train=num_train, num_test=num_test,num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=True)
 trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
-
-testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
+testset = dataset.noisy_stl10(sigma, num_train=num_train, num_test=num_test,num_copy=num_copy, dataDir=dataDir, transform=img_transform,train=False)
 testloader = DataLoader(testset, batch_size=20, shuffle=True)
 
 print('==> Building model..')
@@ -49,7 +50,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 #netType = 'CNN1'
 #netName = 'dae_%s'%(netType)
 #net = models.dae.autoencoder(netType).to(device)
-netType = 'CNN32'
+netType = 'CNN64'
 netName = 'dncnn_%s'%(netType)
 net = models.dncnn.deepcnn(netType).to(device)
 if device == 'cuda':
@@ -68,7 +69,7 @@ if args.resume:
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-5)
-scheduler = MultiStepLR(optimizer, milestones=[50,100,150,200], gamma=0.1)
+scheduler = MultiStepLR(optimizer, milestones=[50,100,150], gamma=0.1)
 
 
 def train(epoch):
