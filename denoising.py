@@ -50,7 +50,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 #netType = 'CNN1'
 #netName = 'dae_%s'%(netType)
 #net = models.dae.autoencoder(netType).to(device)
-netType = 'CNN64'
+netType = 'CNN64_5'
 netName = 'dncnn_%s'%(netType)
 net = models.dncnn.deepcnn(netType).to(device)
 if device == 'cuda':
@@ -69,7 +69,7 @@ if args.resume:
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-5)
-scheduler = MultiStepLR(optimizer, milestones=[50,100,150], gamma=0.1)
+scheduler = MultiStepLR(optimizer, milestones=[50,100,150,200], gamma=0.1)
 
 
 def train(epoch):
