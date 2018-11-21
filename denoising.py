@@ -68,7 +68,7 @@ if args.resume:
 
 
 criterion = nn.MSELoss()
-optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-4)
+optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-5)
 scheduler = MultiStepLR(optimizer, milestones=[50,100,150], gamma=0.1)
 
 
