@@ -117,4 +117,4 @@ class denoised_stl10(noisy_cifar10):
             self.test_labels = db['test_labels'][:num_test]
 
 if __name__ == '__main__':
-    trainset = denoised_stl10(sigma=0.2,netName='dncnn_CNN64',dataDir='../stl10',transform=transforms.ToTensor())
+    trainset = denoised_stl10(sigma=0.05,netName='dncnn_CNN64',dataDir='../stl10',transform=transforms.ToTensor())
