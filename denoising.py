@@ -50,7 +50,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 #netType = 'CNN1'
 #netName = 'dae_%s'%(netType)
 #net = models.dae.autoencoder(netType).to(device)
-netType = 'CNN64_5'
+netType = 'CNN128'
 netName = 'dncnn_%s'%(netType)
 net = models.dncnn.deepcnn(netType).to(device)
 if device == 'cuda':
