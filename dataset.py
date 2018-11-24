@@ -115,6 +115,33 @@ class denoised_stl10(noisy_cifar10):
             self.test_data_noisy=db['test_data_noisy'][:num_test]
             self.test_data_denoised = db['test_data_denoised'][:num_test]
             self.test_labels = db['test_labels'][:num_test]
+            
+    def __getitem__(self, index):
+        idx = int(index//self.num_copy)
+        if self.train:
+            noisy = self.train_data_noisy[index]
+            denoised = self.train_data_denoised[index]
+            img, target = self.train_data[idx], self.train_labels[idx]  
+        else:
+            noisy = self.test_data_noisy[index]
+            denoised = self.test_data_denoised[index]
+            img, target = self.test_data[idx], self.test_labels[idx]
+        
+        noisy = (noisy*255).astype(np.uint8)
+        denoised = (np.clip(denoised,0,1)*255).astype(np.uint8)
+        img = (img*255).astype(np.uint8)
+        # Image.fromarray only defined for uint8
+        noisy = Image.fromarray(noisy)
+        denoised = Image.fromarray(denoised)
+        img = Image.fromarray(img)
+        
+        if self.transform is not None:
+            noisy = self.transform(noisy)
+            denoised = self.transform(denoised)
+            img = self.transform(img)
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+        return denoised, noisy, img, target
 
 if __name__ == '__main__':
     trainset = denoised_stl10(sigma=0.1,netName='dncnn_CNN64_5',dataDir='../stl10',transform=transforms.ToTensor())
