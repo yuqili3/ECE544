@@ -8,6 +8,16 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 from torch.autograd import Variable
 import dataset
+import argparse
+
+parser = argparse.ArgumentParser(description='PyTorch Classifier for STL-10')
+parser.add_argument('--epoch', default=30, type=int, help='number of training epochs')
+parser.add_argument('--copy', default=1, type=int, help='number of noisy image copies')
+parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma')
+parser.add_argument('--dataset-type', default='clean', type=str, help='dataset-type:clean or noisy or denoised')
+parser.add_argument('--netName', default='dncnn_CNN64_5', type=str, help='Model being used for denoising')
+
+args = parser.parse_args()
 
 # Model Pre-loading
 model_urls = {
@@ -31,14 +41,14 @@ ignored_params = list(map(id, model.fc.parameters()))
 base_params = filter(lambda p: id(p) not in ignored_params,
                      model.parameters())
 
-learning_rate = 1e-4
+learning_rate = 1e-5
 optimizer = optim.Adam([
     {'params': base_params},
     {'params': model.fc.parameters(), 'lr': 1e-3}
 ], lr=learning_rate)
 
 criterion = nn.CrossEntropyLoss()
-num_epochs = 10
+num_epochs = args.epoch
 batch_size = 40
 
 # Transform on training and test data
@@ -57,45 +67,87 @@ transform_test = transforms.Compose([
 ])
 
 dataDir = '/home/yuqi/spinner/dataset/stl10'
-sigma = 0.5
-num_copy = 1
+sigma = args.sigma
+num_copy = args.copy
+dataset_type = args.dataset_type
+netName = args.netName
+
+if dataset_type == 'denoised':
+    trainset = dataset.denoised_stl10(sigma, netName=netName, dataDir=dataDir, transform=transform_train, train=True)
+    testset = dataset.denoised_stl10(sigma, netName=netName, dataDir=dataDir, transform=transform_test, train=False)
+else:
+    trainset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=transform_train, train=True)
+    testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=transform_test, train=False)
 
 # Dataloader for train set
-trainset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=transform_train, train=True)
 trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
-
 # Dataloader for test set
-testset = dataset.noisy_stl10(sigma, num_copy=num_copy, dataDir=dataDir, transform=transform_test, train=False)
 testloader = DataLoader(testset, batch_size=batch_size, shuffle=True)
 
 model.train()
 
 for epoch in range(num_epochs):
     train_accuracy = []
-    for batch_idx, (inputs, _, targets) in enumerate(trainloader):
-        inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        loss.backward()
-        optimizer.step()
-        prediction = outputs.data.max(1)[1]
-        accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
-        train_accuracy.append(accuracy)
+    if dataset_type == 'denoised':
+        for batch_idx, (denoised, noisy, clean, targets) in enumerate(trainloader):
+            inputs = denoised
+            inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            optimizer.step()
+            prediction = outputs.data.max(1)[1]
+            accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
+            train_accuracy.append(accuracy)
+    else:
+        for batch_idx, (processed, clean, targets) in enumerate(trainloader):
+            if dataset_type == 'clean':
+                inputs = clean
+            else:
+                inputs = processed
+            inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            optimizer.step()
+            prediction = outputs.data.max(1)[1]
+            accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
+            train_accuracy.append(accuracy)
     print(epoch, accuracy)
 
 del inputs, targets
 
+print("Evaluating the model")
+
 model.eval()
 test_acc = []
-for batch_idx, (inputs, _, targets) in enumerate(testloader):
-    with torch.no_grad():
-        inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        prediction = outputs.data.max(1)[1]
-        accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size))*100.0
-        test_acc.append(accuracy)
-    del inputs, targets
+if dataset_type == 'denoised':
+    for batch_idx, (denoised, noisy, clean, targets) in enumerate(trainloader):
+        inputs = denoised
+        with torch.no_grad():
+            inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            prediction = outputs.data.max(1)[1]
+            accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
+            test_acc.append(accuracy)
+        del inputs, targets
+else:
+    for batch_idx, (processed, clean, targets) in enumerate(testloader):
+        if dataset_type == 'clean':
+            inputs = clean
+        else:
+            inputs = processed
+        with torch.no_grad():
+            inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            prediction = outputs.data.max(1)[1]
+            accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size))*100.0
+            test_acc.append(accuracy)
+        del inputs, targets
+
 accuracy_test = np.mean(test_acc)
 print("test accuracy", accuracy_test)
