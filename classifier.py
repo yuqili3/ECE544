@@ -124,7 +124,7 @@ print("Evaluating the model")
 model.eval()
 test_acc = []
 if dataset_type == 'denoised':
-    for batch_idx, (denoised, noisy, clean, targets) in enumerate(trainloader):
+    for batch_idx, (denoised, noisy, clean, targets) in enumerate(testloader):
         inputs = denoised
         with torch.no_grad():
             inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
