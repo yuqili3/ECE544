@@ -1,0 +1,9 @@
+# Results for classification (independent) of denoising for different dataset-types using pre-trained Resnet-18 model
+# Configuration is kept same across trainings different classifiers
+
+````````````````````````````````````````````````````````
+Dataset-Type		Accuracy
+Clean			91.5
+Denoised		87.30
+Noisy			83.46
+
