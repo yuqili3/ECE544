@@ -86,7 +86,7 @@ def add_noise_and_save(dataDir, outDir, sigma,num_copy = 1):
 
 
 def get_denoised_dataset(dataDir, outDir, sigma,netName, num_copy = 1):
-    checkpoint = torch.load('../checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
+    checkpoint = torch.load('./checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName,sigma,num_copy))
     net = models.dncnn.deepcnn(netName[6:]).cuda()
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
