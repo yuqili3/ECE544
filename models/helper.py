@@ -15,7 +15,7 @@ class transform(nn.Module):
     def forward(self,x):
         up = F.interpolate(x,size=self.outsize,mode='bilinear')
         out= up.sub(self.mean.unsqueeze_(1).unsqueeze_(2))
-        out= up.div(self.std.unsqueeze_(1).unsqueeze_(2))
+        out= out.div(self.std.unsqueeze_(1).unsqueeze_(2))
         return out
     
 def test():
