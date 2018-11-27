@@ -115,7 +115,7 @@ for epoch in range(num_epochs):
             prediction = outputs.data.max(1)[1]
             accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
             train_accuracy.append(accuracy)
-    print(epoch, accuracy)
+    print(epoch, np.mean(train_accuracy))
 
 del inputs, targets
 
@@ -151,3 +151,6 @@ else:
 
 accuracy_test = np.mean(test_acc)
 print("test accuracy", accuracy_test)
+
+path = dataset_type + '_classifier_model.pkl'
+torch.save(model.state_dict(), path)
