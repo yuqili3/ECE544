@@ -30,6 +30,7 @@ class deepcnn(nn.Module):
                   nn.ReLU(True)]
         for i in range(depth-2):
             layers += [nn.Conv2d(ch,ch,k,padding=padding),
+#                       nn.Dropout2d(p=0.9),
                        nn.BatchNorm2d(ch,eps=0.0001, momentum = 0.95),
                        nn.ReLU(True)]
         layers += [nn.Conv2d(ch,3,k,padding=padding)]
