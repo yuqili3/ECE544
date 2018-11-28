@@ -92,6 +92,7 @@ reg_term = args.reg_term
 
 def train(epoch):
     train_accuracy = []
+    MSE = 0
     for batch_idx, (noisy, clean, targets) in enumerate(trainloader):
         noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
         optimizer_classifier.zero_grad()
@@ -102,6 +103,7 @@ def train(epoch):
 
         loss_ce = criterion_CE(class_output, targets)
         loss_denoise = criterion_MSE(denoised_output, clean)
+        MSE += loss_denoise
 
         net_loss = (1 - reg_term) * loss_ce + reg_term*loss_denoise
         net_loss.backward()
@@ -111,7 +113,7 @@ def train(epoch):
         prediction = class_output.data.max(1)[1]
         accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
         train_accuracy.append(accuracy)
-    print('TRAIN: ', epoch, np.mean(train_accuracy),'| MSE: ',loss_denoise)
+    print('TRAIN: ', epoch, np.mean(train_accuracy),'| MSE: ',MSE.item())
     
     
 net_denoise.eval()
@@ -120,19 +122,20 @@ test_accuracy = []
 
 def test(epoch):
     global best_accu
+    MSE = 0
     for batch_idx, (noisy, clean, targets) in enumerate(testloader):
         noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
         optimizer_classifier.zero_grad()
         optimizer_denoising.zero_grad()
     
-        denoised_output = net_denoise(noisy)
-        loss_denoise = criterion_MSE(denoised_output,clean)
+        denoised_output = net_denoise(noisy) 
+        MSE += criterion_MSE(denoised_output,clean)
         transformed_denoised = fixed_transform(denoised_output)
         class_output = classification_model(transformed_denoised)
         prediction = class_output.data.max(1)[1]
         accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
         test_accuracy.append(accuracy)
-    print('TEST',epoch ,np.mean(test_accuracy),'| MSE: ',loss_denoise)
+    print('TEST: ',epoch ,np.mean(test_accuracy),'| MSE: ',MSE.item())
     
     if np.mean(test_accuracy) > best_accu:
         print('Saving..')
