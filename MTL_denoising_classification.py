@@ -55,14 +55,13 @@ net_denoise = torch.nn.DataParallel(net_denoise)
 net_denoise.load_state_dict(denoising_model['net'])
 net_denoise.cuda()
 
-# DENOISING: LEARNING RATE ADJUSTMENT
+# LEARNING RATE ADJUSTMENT
 lr = args.lr
 optimizer_classifier = optim.Adam([
     {'params': base_params},
     {'params': classification_model.fc.parameters(), 'lr': 1e-3}
 ], lr=lr)
 
-# LOSS FUNC.S
 criterion_CE = nn.CrossEntropyLoss()
 criterion_MSE = nn.MSELoss()
 lr = 1e-5
