@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(description='Multi-task learning: Classificatio
 parser.add_argument('--epoch', default=30, type=int, help='number of training epochs')
 parser.add_argument('--lr', default=1e-3, type=float, help='learning rate')
 parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma')
-parser.add_argument('--reg_term', default=0.5, type=int, help='lambda:parameters distributed across two losses')
+parser.add_argument('--reg_term', default=0.5, type=float, help='lambda:parameters distributed across two losses')
 
 args = parser.parse_args()
 # Classification Model Pre-loading
