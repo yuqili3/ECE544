@@ -75,15 +75,16 @@ fixed_transform = models.helper.transform().cuda()
 dataDir = '../stl10' # Running on Gcloud
 num_train = 2000   # max 5000
 num_test = 500
-batch_size = 32
+batch_size_train = 32
+batch_size_test = 20
 best_accu = 0
 
 img_transform = transforms.Compose([transforms.ToTensor()])
 
 trainset = dataset.noisy_stl10(sigma, num_train=num_train, num_test=num_test,num_copy=num_copy, dataDir=dataDir, transform=img_transform, train=True)
-trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
+trainloader = DataLoader(trainset, batch_size=batch_size_train, shuffle=True)
 testset = dataset.noisy_stl10(sigma, num_train=num_train, num_test=num_test,num_copy=num_copy, dataDir=dataDir, transform=img_transform, train=False)
-testloader = DataLoader(testset, batch_size=20, shuffle=True)
+testloader = DataLoader(testset, batch_size=batch_size_test, shuffle=True)
 
 
 num_epochs = args.epoch
@@ -109,7 +110,7 @@ def train(epoch):
         optimizer_classifier.step()
 
         prediction = class_output.data.max(1)[1]
-        accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
+        accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size_train)) * 100.0
         train_accuracy.append(accuracy)
     print('TRAIN: ', epoch, np.mean(train_accuracy),'| MSE: ',MSE.item())
     
@@ -129,7 +130,7 @@ def test(epoch):
             MSE += criterion_MSE(denoised_output,clean)
             class_output = classification_model(fixed_transform(denoised_output))
             prediction = class_output.data.max(1)[1]
-            accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
+            accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size_test)) * 100.0
             test_accuracy.append(accuracy)
         print('TEST: ',epoch ,np.mean(test_accuracy),'| MSE: ',MSE.item())
         
