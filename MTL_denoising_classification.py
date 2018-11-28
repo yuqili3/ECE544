@@ -67,7 +67,7 @@ net_denoise.cuda()
 
 
 criterion_MSE = nn.MSELoss()
-lr = 1e-4
+lr = 1e-5
 optimizer_denoising = optim.Adam(net_denoise.parameters(), lr=lr, weight_decay=1e-5)
 
 # Fixed Transform
@@ -92,8 +92,7 @@ testloader = DataLoader(testset, batch_size=20, shuffle=True)
 num_epochs = args.epoch
 reg_term = args.reg_term
 
-for epoch in range(num_epochs):
-    global best_accu
+def train(epoch):
     train_accuracy = []
     for batch_idx, (noisy, clean, targets) in enumerate(trainloader):
         noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
@@ -119,45 +118,41 @@ for epoch in range(num_epochs):
         train_accuracy.append(accuracy)
     print(epoch, np.mean(train_accuracy))
     
-    if np.mean(train_accuracy) > best_accu:
-        print('Saving..')
-        state = {
-            'net_denoise': net_denoise.state_dict(),
-            'classification_model': classification_model.state_dict(), 
-            'train_accu': best_accu,
-            'epoch': epoch,
-        }
-        best_accu = np.mean(train_accuracy)
-        torch.save(state,'../checkpoints/ckpt_denoise_%s_classification_sigma%.2f.t7'%(netName,sigma))
-        
-        
+    
 net_denoise.eval()
 classification_model.eval()
 test_accuracy = []
 
-for batch_idx, (noisy, clean, targets) in enumerate(testloader):
-    noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
-    optimizer_classifier.zero_grad()
-    optimizer_denoising.zero_grad()
-
-    denoised_output = net_denoise(noisy)
-    transformed_denoised = fixed_transform(denoised_output)
-    class_output = classification_model(transformed_denoised)
-    prediction = class_output.data.max(1)[1]
-    accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
-    test_accuracy.append(accuracy)
-print('Test Complete',np.mean(test_accuracy))
-
-print('Saving..')
-state = {
-        'net_denoise': net_denoise.state_dict(),
-        'classification_model': classification_model.state_dict(), 
-        'train_accu': best_accu,
-        'test_accu': np.mean(test_accuracy),
-        'epoch': epoch,
+def test(epoch):
+    global best_accu
+    for batch_idx, (noisy, clean, targets) in enumerate(testloader):
+        noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
+        optimizer_classifier.zero_grad()
+        optimizer_denoising.zero_grad()
+    
+        denoised_output = net_denoise(noisy)
+        transformed_denoised = fixed_transform(denoised_output)
+        class_output = classification_model(transformed_denoised)
+        prediction = class_output.data.max(1)[1]
+        accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
+        test_accuracy.append(accuracy)
+    print('Test Complete',np.mean(test_accuracy))
+    
+    if np.mean(test_accuracy) > best_accu:
+        print('Saving..')
+        state = {
+            'net_denoise': net_denoise.state_dict(),
+            'classification_model': classification_model.state_dict(), 
+            'test_accu': np.mean(test_accuracy),
+            'epoch': epoch,
         }
-torch.save(state,'../checkpoints/ckpt_denoise_%s_classification_sigma%.2f.t7'%(netName,sigma))
+        best_accu = np.mean(test_accuracy)
+        torch.save(state,'../checkpoints/ckpt_denoise_%s_classification_sigma%.2f.t7'%(netName,sigma))
+
         
+for epoch in range(num_epochs):
+    train(epoch)
+    test(epoch)
 
 #torch.save(net_denoise.state_dict(), "./denoising_net.pkl")
 #torch.save(classification_model.state_dict(), "./classification_net.pkl")
