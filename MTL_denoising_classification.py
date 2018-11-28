@@ -35,7 +35,8 @@ def resnet18(pretrained=True):
     return model
 
 
-classification_model_path = '/home/ankit/courses/pattern_recognition/ECE544/clean_classifier_model.pkl'
+#classification_model_path = '/home/ankit/courses/pattern_recognition/ECE544/clean_classifier_model.pkl'
+classification_model_path = './clean_classifier_model.pkl' # Running on Gcloud
 classification_model = resnet18()
 classification_model.cuda()
 # Learning rate for different parameters
@@ -73,10 +74,12 @@ optimizer_denoising = optim.Adam(net_denoise.parameters(), lr=lr, weight_decay=1
 fixed_transform = models.helper.transform().cuda()
 
 # Data Part
-dataDir = '/home/yuqi/spinner/dataset/stl10'
+#dataDir = '/home/yuqi/spinner/dataset/stl10'
+dataDir = '../stl10' # Running on Gcloud
 num_train = 2000   # max 5000
 num_test = 500
 batch_size = 32
+best_accu = 0
 
 img_transform = transforms.Compose([transforms.ToTensor()])
 
@@ -90,6 +93,7 @@ num_epochs = args.epoch
 reg_term = args.reg_term
 
 for epoch in range(num_epochs):
+    global best_accu
     train_accuracy = []
     for batch_idx, (noisy, clean, targets) in enumerate(trainloader):
         noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
@@ -114,8 +118,19 @@ for epoch in range(num_epochs):
         accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
         train_accuracy.append(accuracy)
     print(epoch, np.mean(train_accuracy))
-
-
+    
+    if np.mean(train_accuracy) > best_accu:
+        print('Saving..')
+        state = {
+            'net_denoise': net_denoise.state_dict(),
+            'classification_model': classification_model.state_dict(), 
+            'train_accu': best_accu,
+            'epoch': epoch,
+        }
+        best_accu = np.mean(train_accuracy)
+        torch.save(state,'../checkpoints/ckpt_denoise_%s_classification_sigma%.2f.t7'%(netName,sigma))
+        
+        
 net_denoise.eval()
 classification_model.eval()
 test_accuracy = []
@@ -131,8 +146,18 @@ for batch_idx, (noisy, clean, targets) in enumerate(testloader):
     prediction = class_output.data.max(1)[1]
     accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
     test_accuracy.append(accuracy)
+print('Test Complete',np.mean(test_accuracy))
 
-print(np.mean(test_accuracy))
+print('Saving..')
+state = {
+        'net_denoise': net_denoise.state_dict(),
+        'classification_model': classification_model.state_dict(), 
+        'train_accu': best_accu,
+        'test_accu': np.mean(test_accuracy),
+        'epoch': epoch,
+        }
+torch.save(state,'../checkpoints/ckpt_denoise_%s_classification_sigma%.2f.t7'%(netName,sigma))
+        
 
-torch.save(net_denoise.state_dict(), "./denoising_net.pkl")
-torch.save(classification_model.state_dict(), "./classification_net.pkl")
+#torch.save(net_denoise.state_dict(), "./denoising_net.pkl")
+#torch.save(classification_model.state_dict(), "./classification_net.pkl")
