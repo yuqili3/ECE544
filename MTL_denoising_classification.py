@@ -98,8 +98,7 @@ def train(epoch):
         optimizer_classifier.zero_grad()
         optimizer_denoising.zero_grad()
         denoised_output = net_denoise(noisy)
-        transformed_denoised = fixed_transform(denoised_output)
-        class_output = classification_model(transformed_denoised)
+        class_output = classification_model(fixed_transform(denoised_output))
 
         loss_ce = criterion_CE(class_output, targets)
         loss_denoise = criterion_MSE(denoised_output, clean)
@@ -115,28 +114,26 @@ def train(epoch):
         train_accuracy.append(accuracy)
     print('TRAIN: ', epoch, np.mean(train_accuracy),'| MSE: ',MSE.item())
     
-    
-net_denoise.eval()
-classification_model.eval()
-test_accuracy = []
 
 def test(epoch):
+    net_denoise.eval()
+    classification_model.eval()
+    test_accuracy = []
     global best_accu
     MSE = 0
-    for batch_idx, (noisy, clean, targets) in enumerate(testloader):
-        noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
-        optimizer_classifier.zero_grad()
-        optimizer_denoising.zero_grad()
-    
-        denoised_output = net_denoise(noisy) 
-        MSE += criterion_MSE(denoised_output,clean)
-        transformed_denoised = fixed_transform(denoised_output)
-        class_output = classification_model(transformed_denoised)
-        prediction = class_output.data.max(1)[1]
-        accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
-        test_accuracy.append(accuracy)
-    print('TEST: ',epoch ,np.mean(test_accuracy),'| MSE: ',MSE.item())
-    
+    with torch.no_grad():
+        for batch_idx, (noisy, clean, targets) in enumerate(testloader):
+            noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
+#            optimizer_classifier.zero_grad()
+#            optimizer_denoising.zero_grad()
+            denoised_output = net_denoise(noisy) 
+            MSE += criterion_MSE(denoised_output,clean)
+            class_output = classification_model(fixed_transform(denoised_output))
+            prediction = class_output.data.max(1)[1]
+            accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
+            test_accuracy.append(accuracy)
+        print('TEST: ',epoch ,np.mean(test_accuracy),'| MSE: ',MSE.item())
+        
     if np.mean(test_accuracy) > best_accu:
         print('Saving..')
         state = {
