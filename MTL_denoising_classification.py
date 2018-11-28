@@ -13,19 +13,22 @@ import argparse
 
 import models
 
+# ARGUMENTS
 parser = argparse.ArgumentParser(description='Multi-task learning: Classification and Denoising')
 parser.add_argument('--epoch', default=30, type=int, help='number of training epochs')
-parser.add_argument('--lr', default=1e-3, type=float, help='learning rate')
+parser.add_argument('--lr', default=1e-5, type=float, help='learning rate')
 parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma')
 parser.add_argument('--reg_term', default=0.5, type=float, help='lambda:parameters distributed across two losses')
 
 args = parser.parse_args()
+sigma = args.sigma
+num_copy = 1
 # Classification Model Pre-loading
 # model_urls = {
 #     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth'
 # }
 
-
+# CLASSIFICATION MODEL
 def resnet18(pretrained=True):
     model = torchvision.models.resnet.ResNet(torchvision.models.resnet.BasicBlock, [2, 2, 2, 2])
     if pretrained:
@@ -34,38 +37,33 @@ def resnet18(pretrained=True):
         model.load_state_dict(torch.load(classification_model_path))
     return model
 
-
 #classification_model_path = '/home/ankit/courses/pattern_recognition/ECE544/clean_classifier_model.pkl'
 classification_model_path = './clean_classifier_model.pkl' # Running on Gcloud
 classification_model = resnet18()
 classification_model.cuda()
-# Learning rate for different parameters
+# CLASSSIFICATION: LEARNING RATE FOR DIFFERENT PARAMS
 ignored_params = list(map(id, classification_model.fc.parameters()))
 base_params = filter(lambda p: id(p) not in ignored_params,
                      classification_model.parameters())
 
-learning_rate = 1e-5
-optimizer_classifier = optim.Adam([
-    {'params': base_params},
-    {'params': classification_model.fc.parameters(), 'lr': 1e-3}
-], lr=learning_rate)
-
-criterion_CE = nn.CrossEntropyLoss()
-
-sigma = args.sigma
-num_copy = 1
-
-# Denoising model
+# DENOISING MODEL
 netType = 'CNN64'
 netName = 'dncnn_%s'%(netType)
 net_denoise = models.dncnn.deepcnn(netType).cuda()
-denoising_model_path = torch.load('./checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName, sigma, num_copy))
-# print(denoising_model_path)
+denoising_model = torch.load('./checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName, sigma, num_copy))
 net_denoise = torch.nn.DataParallel(net_denoise)
-net_denoise.load_state_dict(denoising_model_path['net'])
+net_denoise.load_state_dict(denoising_model['net'])
 net_denoise.cuda()
 
+# DENOISING: LEARNING RATE ADJUSTMENT
+lr = args.lr
+optimizer_classifier = optim.Adam([
+    {'params': base_params},
+    {'params': classification_model.fc.parameters(), 'lr': 1e-3}
+], lr=lr)
 
+# LOSS FUNC.S
+criterion_CE = nn.CrossEntropyLoss()
 criterion_MSE = nn.MSELoss()
 lr = 1e-5
 optimizer_denoising = optim.Adam(net_denoise.parameters(), lr=lr, weight_decay=1e-5)
@@ -98,11 +96,8 @@ def train(epoch):
         noisy, clean, targets = Variable(noisy.cuda()), Variable(clean.cuda()), Variable(targets.cuda())
         optimizer_classifier.zero_grad()
         optimizer_denoising.zero_grad()
-        # print("1", noisy.size())
         denoised_output = net_denoise(noisy)
-        # print("2", denoised_output.size())
         transformed_denoised = fixed_transform(denoised_output)
-        # print("3", transformed_denoised.size())
         class_output = classification_model(transformed_denoised)
 
         loss_ce = criterion_CE(class_output, targets)
@@ -116,7 +111,7 @@ def train(epoch):
         prediction = class_output.data.max(1)[1]
         accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
         train_accuracy.append(accuracy)
-    print(epoch, np.mean(train_accuracy))
+    print('TRAIN: ', epoch, np.mean(train_accuracy))
     
     
 net_denoise.eval()
@@ -136,7 +131,7 @@ def test(epoch):
         prediction = class_output.data.max(1)[1]
         accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
         test_accuracy.append(accuracy)
-    print('Test Complete',np.mean(test_accuracy))
+        print('TEST',epoch ,np.mean(test_accuracy))
     
     if np.mean(test_accuracy) > best_accu:
         print('Saving..')
