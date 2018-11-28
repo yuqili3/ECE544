@@ -111,7 +111,7 @@ def train(epoch):
         prediction = class_output.data.max(1)[1]
         accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
         train_accuracy.append(accuracy)
-    print('TRAIN: ', epoch, np.mean(train_accuracy))
+    print('TRAIN: ', epoch, np.mean(train_accuracy),'| MSE: ',loss_denoise)
     
     
 net_denoise.eval()
@@ -126,12 +126,13 @@ def test(epoch):
         optimizer_denoising.zero_grad()
     
         denoised_output = net_denoise(noisy)
+        loss_denoise = criterion_MSE(denoised_output,clean)
         transformed_denoised = fixed_transform(denoised_output)
         class_output = classification_model(transformed_denoised)
         prediction = class_output.data.max(1)[1]
         accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size)) * 100.0
         test_accuracy.append(accuracy)
-        print('TEST',epoch ,np.mean(test_accuracy))
+    print('TEST',epoch ,np.mean(test_accuracy),'| MSE: ',loss_denoise)
     
     if np.mean(test_accuracy) > best_accu:
         print('Saving..')
