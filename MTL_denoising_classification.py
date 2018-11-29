@@ -19,7 +19,7 @@ parser.add_argument('--epoch', default=30, type=int, help='number of training ep
 parser.add_argument('--lr', default=1e-5, type=float, help='learning rate')
 parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma')
 parser.add_argument('--reg_term', default=0.5, type=float, help='lambda:parameters distributed across two losses')
-parser.add_argument('--netType',defualt='CNN64',type=str, help='type of denoising CNN')
+parser.add_argument('--netType',default='CNN64',type=str, help='type of denoising CNN')
 args = parser.parse_args()
 sigma = args.sigma
 num_copy = 1
