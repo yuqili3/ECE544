@@ -19,7 +19,7 @@ parser.add_argument('--epoch', default=30, type=int, help='number of training ep
 parser.add_argument('--lr', default=1e-5, type=float, help='learning rate')
 parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma')
 parser.add_argument('--reg_term', default=0.5, type=float, help='lambda:parameters distributed across two losses')
-
+parser.add_argument('--netType',defualt='CNN64',type=str, help='type of denoising CNN')
 args = parser.parse_args()
 sigma = args.sigma
 num_copy = 1
@@ -47,7 +47,7 @@ base_params = filter(lambda p: id(p) not in ignored_params,
                      classification_model.parameters())
 
 # DENOISING MODEL
-netType = 'CNN64'
+netType = args.netType
 netName = 'dncnn_%s'%(netType)
 net_denoise = models.dncnn.deepcnn(netType).cuda()
 denoising_model = torch.load('./checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName, sigma, num_copy))
@@ -74,7 +74,7 @@ fixed_transform = models.helper.transform().cuda()
 #dataDir = '/home/yuqi/spinner/dataset/stl10'
 dataDir = '../stl10' # Running on Gcloud
 num_train = 2000   # max 5000
-num_test = 500
+num_test = 5000
 batch_size_train = 32
 batch_size_test = 20
 best_accu = 0
@@ -112,7 +112,7 @@ def train(epoch):
         prediction = class_output.data.max(1)[1]
         accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size_train)) * 100.0
         train_accuracy.append(accuracy)
-    print('TRAIN: ', epoch, np.mean(train_accuracy),'| MSE: ',MSE.item())
+    print('TRAIN: epoch: %d | accuracy: %.2f | MSE: %.6f'%(epoch,np.mean(train_accuracy),MSE.item()))
     
 
 def test(epoch):
@@ -132,7 +132,7 @@ def test(epoch):
             prediction = class_output.data.max(1)[1]
             accuracy = (float(prediction.eq(targets.data).sum()) / float(batch_size_test)) * 100.0
             test_accuracy.append(accuracy)
-        print('TEST: ',epoch ,np.mean(test_accuracy),'| MSE: ',MSE.item())
+        print('TEST: epoch: %d | accuracy: %.2f | MSE: %.6f'%(epoch,np.mean(test_accuracy),MSE.item()))
         
     if np.mean(test_accuracy) > best_accu:
         print('Saving..')
@@ -143,9 +143,11 @@ def test(epoch):
             'epoch': epoch,
         }
         best_accu = np.mean(test_accuracy)
-        torch.save(state,'../checkpoints/ckpt_denoise_%s_classification_sigma%.2f.t7'%(netName,sigma))
+        torch.save(state,'../checkpoints/ckpt_denoise_%s_classification_sigma%.2f_reg%.2f.t7'%(netName,sigma,reg_term))
 
-        
+
+print('START: MTL_denoising_classification: netType: %s | sigma: %.2f | epochs: %d | reg_term: %.2f | lr: %.2E'
+      %(netType,sigma,num_epochs,reg_term,args.lr))
 for epoch in range(num_epochs):
     train(epoch)
     test(epoch)
