@@ -1,4 +1,5 @@
 # This script is for jointly training denoising and classification
+#!/usr/bin/env/python
 import numpy as np
 import torch
 import torchvision
@@ -15,7 +16,7 @@ import models
 
 # ARGUMENTS
 parser = argparse.ArgumentParser(description='Multi-task learning: Classification and Denoising')
-parser.add_argument('--epoch', default=30, type=int, help='number of training epochs')
+parser.add_argument('--epoch', default=200, type=int, help='number of training epochs')
 parser.add_argument('--lr', default=1e-5, type=float, help='learning rate')
 parser.add_argument('--sigma', default=0.05, type=float, help='noise level sigma')
 parser.add_argument('--reg_term', default=0.5, type=float, help='lambda:parameters distributed across two losses')
@@ -24,21 +25,20 @@ args = parser.parse_args()
 sigma = args.sigma
 num_copy = 1
 # Classification Model Pre-loading
-# model_urls = {
-#     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth'
-# }
+model_urls = {
+    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth'
+}
 
 # CLASSIFICATION MODEL
 def resnet18(pretrained=True):
     model = torchvision.models.resnet.ResNet(torchvision.models.resnet.BasicBlock, [2, 2, 2, 2])
     if pretrained:
-        # model.load_state_dict(utils.model_zoo.load_url(model_urls['resnet18'], model_dir='./'))
+        model.load_state_dict(utils.model_zoo.load_url(model_urls['resnet18'], model_dir='./'))
         model.fc = nn.Linear(512, 10)
-        model.load_state_dict(torch.load(classification_model_path))
     return model
 
 #classification_model_path = '/home/ankit/courses/pattern_recognition/ECE544/clean_classifier_model.pkl'
-classification_model_path = './clean_classifier_model.pkl' # Running on Gcloud
+# classification_model_path = './clean_classifier_model.pkl' # Running on Gcloud
 classification_model = resnet18()
 classification_model.cuda()
 # CLASSSIFICATION: LEARNING RATE FOR DIFFERENT PARAMS
@@ -50,9 +50,9 @@ base_params = filter(lambda p: id(p) not in ignored_params,
 netType = args.netType
 netName = 'dncnn_%s'%(netType)
 net_denoise = models.dncnn.deepcnn(netType).cuda()
-denoising_model = torch.load('./checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName, sigma, num_copy))
+# denoising_model = torch.load('./checkpoints/ckpt_%s_sigma%.2f_copy%d.t7'%(netName, sigma, num_copy))
 net_denoise = torch.nn.DataParallel(net_denoise)
-net_denoise.load_state_dict(denoising_model['net'])
+# net_denoise.load_state_dict(denoising_model['net'])
 net_denoise.cuda()
 
 # LEARNING RATE ADJUSTMENT
@@ -64,7 +64,7 @@ optimizer_classifier = optim.Adam([
 
 criterion_CE = nn.CrossEntropyLoss()
 criterion_MSE = nn.MSELoss()
-lr = 1e-5
+lr = 1e-3
 optimizer_denoising = optim.Adam(net_denoise.parameters(), lr=lr, weight_decay=1e-5)
 
 # Fixed Transform
@@ -143,7 +143,7 @@ def test(epoch):
             'epoch': epoch,
         }
         best_accu = np.mean(test_accuracy)
-        torch.save(state,'../checkpoints/ckpt_denoise_%s_classification_sigma%.2f_reg%.2f.t7'%(netName,sigma,reg_term))
+        torch.save(state,'./checkpoints/ckpt_denoise_random_init_%s_classification_sigma%.2f_reg%.2f.t7'%(netName,sigma,reg_term))
 
 
 print('START: MTL_denoising_classification: netType: %s | sigma: %.2f | epochs: %d | reg_term: %.2f | lr: %.2E'
@@ -152,5 +152,5 @@ for epoch in range(num_epochs):
     train(epoch)
     test(epoch)
 
-#torch.save(net_denoise.state_dict(), "./denoising_net.pkl")
-#torch.save(classification_model.state_dict(), "./classification_net.pkl")
+# torch.save(net_denoise.state_dict(), "./denoising_net.pkl")
+# torch.save(classification_model.state_dict(), "./classification_net.pkl")
