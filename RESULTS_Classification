@@ -7,3 +7,7 @@ Clean			91.5
 Denoised		87.30
 Noisy			83.46
 
+When trained jointly using MTL set-up (No pre-trained denoiser i.e. random init)
+
+Dataset-Type		Accuracy
+Noisy			90.94

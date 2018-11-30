@@ -71,8 +71,8 @@ optimizer_denoising = optim.Adam(net_denoise.parameters(), lr=lr, weight_decay=1
 fixed_transform = models.helper.transform().cuda()
 
 # Data Part
-#dataDir = '/home/yuqi/spinner/dataset/stl10'
-dataDir = '../stl10' # Running on Gcloud
+dataDir = '/home/yuqi/spinner/dataset/stl10'
+# dataDir = '../stl10' # Running on Gcloud
 num_train = 2000   # max 5000
 num_test = 5000
 batch_size_train = 32
