@@ -9,5 +9,10 @@ Noisy			83.46
 
 When trained jointly using MTL set-up (No pre-trained denoiser i.e. random init)
 
-Dataset-Type		Accuracy
-Noisy			90.94
+Dataset-Type	Reg_term	Accuracy
+Noisy		0		91.6
+Noisy		0.1		91.88
+Noisy		0.5		92
+Noisy		0.9		91.76
+Noisy		1		10.72 (Random)
+
