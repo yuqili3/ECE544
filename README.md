@@ -23,10 +23,13 @@ This will train a joint denoising and classification model with learning rate 1e
 
 5. Joint training--random initialization
 
-Example MTL_denoising_classification_random_init.py --lr=1e-5 --epoch=150 --sigma=0.05 --reg_term=0.1 --netType=CNN64
+Example: MTL_denoising_classification_random_init.py --lr=1e-5 --epoch=150 --sigma=0.05 --reg_term=0.1 --netType=CNN64
 
 The setup is the same as 4. Except that the parameters in denoiser is randomly initialized. 
 
-6. other notes:
+6. Figure generation
+python figure_generate.py
+
+7. other notes:
 
 In lots of py file, we hard-coded the data directory (training was done on different servers).
