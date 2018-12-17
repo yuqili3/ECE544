@@ -1,4 +1,4 @@
-# ECE544
+# ECE544 Jointly Learning: Denoising for robust Classification
 1. Dataset prepare: 
 
  dataset: used STL-10, for each training and testing image, generate noisy images with noise level = sigma=0.05,0.1,0.2
